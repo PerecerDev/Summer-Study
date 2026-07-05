@@ -71,7 +71,7 @@ See ADRs in `.claude/decisions/`.
 - [ ] 20 exercises are unique and curricularly appropriate (parent review)
 - [ ] History shows all completed rounds with correct detail
 - [ ] Lighthouse performance ≥ 80 on tablet viewport
-- [ ] CI green on all PRs to `develop`
+- [ ] CI green on all PRs to `main`
 - [ ] No secrets in repository
 - [ ] WCAG 2.1 AA on core screens
 

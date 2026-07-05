@@ -127,16 +127,13 @@ GitHub (public repo)
 3. Run migrations (if pending)
 4. Smoke test: health endpoint + login
 
-## On merge to `develop`
-
-- Integration deploy to staging URL (optional)
-
 ---
 
 # GitHub Repository
 
 - Public repository
-- Branch protection on `main` and `develop`:
+- Default branch: `main` (production)
+- Branch protection on `main` (recommended):
   - Require PR
   - Require CI pass
   - No force push

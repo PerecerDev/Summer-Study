@@ -62,9 +62,10 @@ Decisiones documentadas en [ADRs](.claude/decisions/).
 
 | Rama | Propósito |
 | ---- | --------- |
-| `main` | Producción estable |
-| `develop` | Integración |
+| `main` | Producción (rama por defecto) |
 | `feature/*` | Desarrollo de funcionalidades |
+
+Flujo: `feature/*` → PR a `main` → deploy automático a producción en Vercel.
 
 Commits: [Conventional Commits](https://www.conventionalcommits.org/) (`feat:`, `fix:`, `docs:`, etc.)
 

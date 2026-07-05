@@ -177,9 +177,10 @@ Agents write `.claude/reports/<agent>-task-report.json` (see `.claude/reports/RE
 
 | Branch      | Purpose                    |
 | ----------- | -------------------------- |
-| `main`      | Production                 |
-| `develop`   | Integration                |
+| `main`      | Production (default)       |
 | `feature/*` | Feature development        |
+
+All work merges to `main`. Pushes and merged PRs to `main` deploy production on Vercel.
 
 Small, coherent commits. Conventional commit messages.
 

@@ -32,7 +32,7 @@ Docs        Core loop       Motivación    Evolución     Escala
 - [x] Aprobación cliente de Fase 0
 - [x] Scaffold del proyecto (Vite + React + TS + Tailwind)
 - [x] CI/CD GitHub Actions (activo)
-- [x] Branches `main` y `develop` (local)
+- [x] Branch `main` como producción (default)
 - [ ] Neon PostgreSQL — proyecto y schema inicial
 - [ ] Vercel — proyecto conectado al repo
 

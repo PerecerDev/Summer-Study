@@ -17,7 +17,7 @@ Priority: **P0** = MVP blocker | **P1** = next slice | **P2** = future
 | E1-04 | GitHub Actions CI (lint, test, build) | P0 | Done |
 | E1-05 | Vercel project + env vars | P0 | Done |
 | E1-06 | Neon project + dev database | P0 | Done |
-| E1-07 | Branches `main` and `develop` + protection | P0 | Done (local) |
+| E1-07 | Branch `main` (production default) + protection | P0 | Done |
 | E1-08 | `.env.example` and secrets documentation | P0 | Done |
 
 ---

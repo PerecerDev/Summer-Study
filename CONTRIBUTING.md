@@ -17,14 +17,14 @@ Thank you for your interest in Summer Study. This project is built to portfolio-
 
 | Branch | Purpose |
 | ------ | ------- |
-| `main` | Production-ready |
-| `develop` | Integration |
+| `main` | Production (default branch) |
 | `feature/*` | Feature branches |
 
-1. Branch from `develop`: `feature/your-feature-name`
+1. Branch from `main`: `feature/your-feature-name`
 2. Make small, coherent commits
-3. Open a PR to `develop`
+3. Open a PR to `main`
 4. Ensure CI passes
+5. Merge to `main` deploys production on Vercel
 
 ---
 
