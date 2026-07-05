@@ -1,13 +1,45 @@
 import { config } from 'dotenv';
 import { eq } from 'drizzle-orm';
 import { closeDb, getDb } from './index.js';
-import { parents, users } from './schema.js';
+import { parents, subjects, users } from './schema.js';
 import { hashPassword } from '../services/authService.js';
 
 config();
 
+const SUBJECT_SEEDS = [
+  { code: 'math', name: 'Matemáticas', icon: 'math', sortOrder: 1 },
+  { code: 'language', name: 'Lengua', icon: 'language', sortOrder: 2 },
+  { code: 'english', name: 'Inglés', icon: 'english', sortOrder: 3 },
+  { code: 'valencian', name: 'Valenciano', icon: 'valencian', sortOrder: 4 },
+  { code: 'medi', name: 'Medi', icon: 'medi', sortOrder: 5 },
+] as const;
+
+async function seedSubjects() {
+  const db = getDb();
+
+  for (const subject of SUBJECT_SEEDS) {
+    const [existing] = await db
+      .select()
+      .from(subjects)
+      .where(eq(subjects.code, subject.code))
+      .limit(1);
+
+    if (!existing) {
+      await db.insert(subjects).values({
+        code: subject.code,
+        name: subject.name,
+        icon: subject.icon,
+        sortOrder: subject.sortOrder,
+        isActive: subject.code === 'math',
+      });
+    }
+  }
+}
+
 async function seed() {
   const db = getDb();
+
+  await seedSubjects();
 
   const studentUsername = process.env.SEED_STUDENT_USERNAME ?? 'estudiante';
   const studentPassword = process.env.SEED_STUDENT_PASSWORD ?? '1234';
@@ -21,7 +53,7 @@ async function seed() {
     .limit(1);
 
   if (existing) {
-    console.log(`User "${studentUsername}" already exists — skipping seed.`);
+    console.log(`User "${studentUsername}" already exists — skipping user seed.`);
     await closeDb();
     return;
   }

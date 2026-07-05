@@ -53,6 +53,8 @@ npx vercel deploy --prod
 
 Or connect GitHub repo for automatic deploys on push to `main`.
 
+**Git:** https://github.com/PerecerDev/Summer-Study (connected via `vercel git connect`)
+
 ---
 
 ## Local development

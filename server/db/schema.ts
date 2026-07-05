@@ -1,5 +1,15 @@
 import { relations } from 'drizzle-orm';
-import { pgTable, text, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
+import {
+  boolean,
+  integer,
+  jsonb,
+  pgTable,
+  text,
+  timestamp,
+  uniqueIndex,
+  uuid,
+  varchar,
+} from 'drizzle-orm/pg-core';
 
 export const users = pgTable('users', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -45,10 +55,81 @@ export const parentTokens = pgTable('parent_tokens', {
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
+export const subjects = pgTable('subjects', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  code: varchar('code', { length: 32 }).notNull().unique(),
+  name: varchar('name', { length: 64 }).notNull(),
+  icon: varchar('icon', { length: 32 }),
+  sortOrder: integer('sort_order').notNull(),
+  isActive: boolean('is_active').notNull().default(true),
+});
+
+export const rounds = pgTable('rounds', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  subjectId: uuid('subject_id')
+    .notNull()
+    .references(() => subjects.id),
+  subjectCode: varchar('subject_code', { length: 32 }).notNull(),
+  status: varchar('status', { length: 20 }).notNull().default('in_progress'),
+  exerciseCount: integer('exercise_count').notNull().default(20),
+  correctCount: integer('correct_count').notNull().default(0),
+  scorePercent: integer('score_percent').notNull().default(0),
+  startedAt: timestamp('started_at', { withTimezone: true }).notNull().defaultNow(),
+  completedAt: timestamp('completed_at', { withTimezone: true }),
+  durationSeconds: integer('duration_seconds'),
+  promptVersion: varchar('prompt_version', { length: 20 }),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const exercises = pgTable(
+  'exercises',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    roundId: uuid('round_id')
+      .notNull()
+      .references(() => rounds.id, { onDelete: 'cascade' }),
+    orderIndex: integer('order_index').notNull(),
+    type: varchar('type', { length: 32 }).notNull(),
+    question: text('question').notNull(),
+    options: jsonb('options').$type<string[]>(),
+    correctAnswer: jsonb('correct_answer').$type<string | string[]>().notNull(),
+    explanation: text('explanation'),
+    subjectCode: varchar('subject_code', { length: 32 }).notNull(),
+    topicTag: varchar('topic_tag', { length: 64 }),
+    difficulty: varchar('difficulty', { length: 16 }).notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [uniqueIndex('exercises_round_order_idx').on(table.roundId, table.orderIndex)],
+);
+
+export const exerciseAttempts = pgTable('exercise_attempts', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  exerciseId: uuid('exercise_id')
+    .notNull()
+    .references(() => exercises.id, { onDelete: 'cascade' }),
+  roundId: uuid('round_id')
+    .notNull()
+    .references(() => rounds.id, { onDelete: 'cascade' }),
+  userId: uuid('user_id')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  userAnswer: jsonb('user_answer').$type<string | string[] | null>(),
+  isCorrect: boolean('is_correct').notNull(),
+  skipped: boolean('skipped').notNull().default(false),
+  answeredAt: timestamp('answered_at', { withTimezone: true }).notNull().defaultNow(),
+  timeSpentSeconds: integer('time_spent_seconds'),
+});
+
 export const usersRelations = relations(users, ({ one, many }) => ({
   parent: one(parents, { fields: [users.id], references: [parents.userId] }),
   sessions: many(sessions),
   parentTokens: many(parentTokens),
+  rounds: many(rounds),
+  exerciseAttempts: many(exerciseAttempts),
 }));
 
 export const parentsRelations = relations(parents, ({ one }) => ({
@@ -59,5 +140,31 @@ export const sessionsRelations = relations(sessions, ({ one }) => ({
   user: one(users, { fields: [sessions.userId], references: [users.id] }),
 }));
 
+export const subjectsRelations = relations(subjects, ({ many }) => ({
+  rounds: many(rounds),
+}));
+
+export const roundsRelations = relations(rounds, ({ one, many }) => ({
+  user: one(users, { fields: [rounds.userId], references: [users.id] }),
+  subject: one(subjects, { fields: [rounds.subjectId], references: [subjects.id] }),
+  exercises: many(exercises),
+  attempts: many(exerciseAttempts),
+}));
+
+export const exercisesRelations = relations(exercises, ({ one, many }) => ({
+  round: one(rounds, { fields: [exercises.roundId], references: [rounds.id] }),
+  attempts: many(exerciseAttempts),
+}));
+
+export const exerciseAttemptsRelations = relations(exerciseAttempts, ({ one }) => ({
+  exercise: one(exercises, { fields: [exerciseAttempts.exerciseId], references: [exercises.id] }),
+  round: one(rounds, { fields: [exerciseAttempts.roundId], references: [rounds.id] }),
+  user: one(users, { fields: [exerciseAttempts.userId], references: [users.id] }),
+}));
+
 export type DbUser = typeof users.$inferSelect;
 export type DbSession = typeof sessions.$inferSelect;
+export type DbSubject = typeof subjects.$inferSelect;
+export type DbRound = typeof rounds.$inferSelect;
+export type DbExercise = typeof exercises.$inferSelect;
+export type DbExerciseAttempt = typeof exerciseAttempts.$inferSelect;
