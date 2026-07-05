@@ -4,7 +4,6 @@ import { ParentGateModal } from '@/features/auth/components/ParentGateModal';
 import { useLogout, useSession } from '@/features/auth/hooks/useAuth';
 import { useParentAuthStore } from '@/features/auth/stores/parentAuthStore';
 import { useUserProgress, XpBar } from '@/features/gamification';
-import { ParentSubjectsPanel } from '@/features/subjects';
 import { Button } from '@/shared/components/ui/Button';
 import { ErrorPage, LoadingPage } from '@/shared/components/ui/PageState';
 import { formatGradeLevel } from '@/shared/lib/grade';
@@ -17,7 +16,6 @@ export function ProfilePage() {
   const clearParentAuth = useParentAuthStore((state) => state.clearParentAuth);
   const isParentAuthenticated = useParentAuthStore((state) => state.isParentAuthenticated);
   const [isParentGateOpen, setIsParentGateOpen] = useState(false);
-  const [showParentPanel, setShowParentPanel] = useState(false);
 
   const user = sessionQuery.data?.user;
 
@@ -82,31 +80,26 @@ export function ProfilePage() {
       </div>
 
       <div className="space-y-3">
-        <Button
-          type="button"
-          variant="secondary"
-          onClick={() => {
-            setIsParentGateOpen(true);
-          }}
-        >
-          Zona de papá/mamá
-        </Button>
-
         {isParentAuthenticated() ? (
-          <div className="space-y-4 rounded-2xl bg-surface p-6 shadow-sm">
-            <p className="text-base text-success">Acceso de padres activo (15 min)</p>
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={() => {
-                setShowParentPanel((value) => !value);
-              }}
-            >
-              {showParentPanel ? 'Ocultar materias' : 'Gestionar materias'}
-            </Button>
-            {showParentPanel ? <ParentSubjectsPanel /> : null}
-          </div>
-        ) : null}
+          <Button
+            type="button"
+            onClick={() => {
+              navigate('/parent');
+            }}
+          >
+            Ir al panel de padres
+          </Button>
+        ) : (
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={() => {
+              setIsParentGateOpen(true);
+            }}
+          >
+            Zona de papá/mamá
+          </Button>
+        )}
 
         <Button
           type="button"
@@ -124,7 +117,7 @@ export function ProfilePage() {
           setIsParentGateOpen(false);
         }}
         onSuccess={() => {
-          setShowParentPanel(true);
+          navigate('/parent');
         }}
       />
     </section>

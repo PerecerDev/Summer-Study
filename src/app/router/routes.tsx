@@ -1,11 +1,14 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { RouteErrorPage } from '@/app/components/RouteErrorPage';
 import { AppLayout } from '@/app/layouts/AppLayout';
+import { ParentLayout } from '@/app/layouts/ParentLayout';
+import { ParentRoute } from '@/app/router/ParentRoute';
 import { ProtectedRoute } from '@/app/router/ProtectedRoute';
 import { LoginPage } from '@/features/auth/components/LoginPage';
 import { HistoryPage, RoundDetailPage } from '@/features/history';
 import { AchievementsPage, ProgressPage } from '@/features/gamification';
 import { HomePage } from '@/features/home/components/HomePage';
+import { ParentOverviewPage } from '@/features/parent';
 import { ProfilePage } from '@/features/profile';
 import { ResultsPage, RoundPage } from '@/features/rounds';
 
@@ -27,6 +30,16 @@ export const router = createBrowserRouter([
           {
             path: '/round/:roundId/results',
             element: <ResultsPage />,
+          },
+          {
+            path: '/parent',
+            element: <ParentRoute />,
+            children: [
+              {
+                element: <ParentLayout />,
+                children: [{ index: true, element: <ParentOverviewPage /> }],
+              },
+            ],
           },
           {
             path: '/',

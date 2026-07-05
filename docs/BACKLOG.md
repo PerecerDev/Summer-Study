@@ -118,9 +118,9 @@ Priority: **P0** = MVP blocker | **P1** = next slice | **P2** = future
 
 | ID | Story | Priority | Status |
 | -- | ----- | -------- | ------ |
-| E9-01 | GET /parent/overview | P1 | Backlog |
-| E9-02 | Parent layout + overview page | P1 | Backlog |
-| E9-03 | Progress by subject charts | P1 | Backlog |
+| E9-01 | GET /parent/overview | P1 | Done |
+| E9-02 | Parent layout + overview page | P1 | Done |
+| E9-03 | Progress by subject charts | P1 | Done |
 
 ---
 

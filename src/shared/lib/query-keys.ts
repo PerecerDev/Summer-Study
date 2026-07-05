@@ -10,6 +10,9 @@ export const queryKeys = {
     list: ['subjects', 'list'] as const,
     parent: ['subjects', 'parent'] as const,
   },
+  parent: {
+    overview: ['parent', 'overview'] as const,
+  },
   rounds: {
     active: ['rounds', 'active'] as const,
     detail: (roundId: string) => ['rounds', 'detail', roundId] as const,

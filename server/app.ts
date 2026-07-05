@@ -3,9 +3,10 @@ import { cors } from 'hono/cors';
 import { authRoutes } from './routes/auth.js';
 import { historyRoutes } from './routes/history.js';
 import { isLlmConfigured } from './services/llmClient.js';
+import { parentRoutes } from './routes/parent.js';
 import { progressRoutes } from './routes/progress.js';
 import { roundRoutes } from './routes/rounds.js';
-import { subjectRoutes, parentRoutes } from './routes/subjects.js';
+import { subjectRoutes } from './routes/subjects.js';
 import { ApiError, errorResponse } from './lib/errors.js';
 
 export function createApp() {
