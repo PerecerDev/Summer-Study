@@ -33,7 +33,7 @@ Migrations tracked in `schema_migrations` (`0000_init.sql`, `0001_rounds.sql`).
 | ----- | ----- |
 | Provider | [Groq](https://console.groq.com) |
 | API | OpenAI-compatible |
-| Default model | `llama-3.3-70b-versatile` |
+| Default model | `llama-3.1-8b-instant` |
 | Base URL | `https://api.groq.com/openai/v1` |
 
 **Get API key:** [console.groq.com/keys](https://console.groq.com/keys) (free tier).
@@ -43,7 +43,7 @@ Migrations tracked in `schema_migrations` (`0000_init.sql`, `0001_rounds.sql`).
 | Variable | Required | Notes |
 | -------- | -------- | ----- |
 | `GROQ_API_KEY` | Yes* | Primary key (also accepts `LLM_API_KEY`) |
-| `LLM_MODEL` | No | Default `llama-3.3-70b-versatile` |
+| `LLM_MODEL` | No | Default `llama-3.1-8b-instant` |
 | `LLM_BASE_URL` | No | Default Groq endpoint |
 | `MOCK_LLM` | No | Set `true` to force mock exercises (dev/tests) |
 
@@ -70,7 +70,7 @@ Migrations tracked in `schema_migrations` (`0000_init.sql`, `0001_rounds.sql`).
 | `SESSION_SECRET` | Yes | Random 32+ byte hex string |
 | `NODEJS_HELPERS` | Yes | Set to `0` |
 | `GROQ_API_KEY` | Yes | Groq API key |
-| `LLM_MODEL` | No | `llama-3.3-70b-versatile` |
+| `LLM_MODEL` | No | `llama-3.1-8b-instant` |
 | `LLM_BASE_URL` | No | `https://api.groq.com/openai/v1` |
 
 **Deploy:** automatic on push to `main` only (production branch). Pushes to `develop` are disabled in `vercel.json`.

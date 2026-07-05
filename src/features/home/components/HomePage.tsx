@@ -7,9 +7,24 @@ import { useSubjects } from '@/features/subjects';
 import { SubjectCard } from '@/shared/components/ui/SubjectCard';
 import { Button } from '@/shared/components/ui/Button';
 import { LoadingPage } from '@/shared/components/ui/PageState';
+import { ApiClientError } from '@/shared/lib/api-client';
 import { queryKeys } from '@/shared/lib/query-keys';
 import { SUBJECT_COLOR_CLASS, SUBJECT_LABELS } from '@/shared/lib/subjects';
 import type { SubjectCode } from '@/shared/types/api/rounds';
+
+function getGenerateErrorMessage(error: Error): string {
+  if (error instanceof ApiClientError) {
+    if (error.code === 'GENERATION_RATE_LIMIT') {
+      return 'Hay mucha demanda ahora. Espera un momento e inténtalo de nuevo.';
+    }
+
+    if (error.code === 'ROUND_IN_PROGRESS') {
+      return 'Ya tienes una ronda en curso. Pulsa «Continuar ronda» para seguir.';
+    }
+  }
+
+  return 'No se pudo empezar la ronda. Inténtalo de nuevo.';
+}
 
 export function HomePage() {
   const navigate = useNavigate();
@@ -32,7 +47,14 @@ export function HomePage() {
     },
   });
 
+  const activeRoundId = activeRoundQuery.data?.round.id;
+
   const handleSelect = (code: SubjectCode) => {
+    if (activeRoundId) {
+      navigate(`/round/${activeRoundId}`);
+      return;
+    }
+
     generateMutation.mutate(code);
   };
 
@@ -80,7 +102,13 @@ export function HomePage() {
 
       {generateMutation.isError && (
         <p className="rounded-xl bg-correction/10 p-4 text-lg text-text-primary" role="alert">
-          No se pudo empezar la ronda. Inténtalo de nuevo.
+          {getGenerateErrorMessage(generateMutation.error)}
+        </p>
+      )}
+
+      {generateMutation.isPending && (
+        <p className="rounded-xl bg-primary/10 p-4 text-lg text-text-primary" aria-live="polite">
+          Preparando ejercicios… Esto puede tardar unos segundos.
         </p>
       )}
 
@@ -96,7 +124,7 @@ export function HomePage() {
               name={name}
               testId={`subject-${code}`}
               colorClass={SUBJECT_COLOR_CLASS[code]}
-              disabled={!available || generateMutation.isPending}
+              disabled={!available || generateMutation.isPending || Boolean(activeRoundId)}
               subtitle={
                 available ? undefined : 'Pide a papá o mamá que la active'
               }

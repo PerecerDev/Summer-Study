@@ -12,6 +12,11 @@ config.routes = [
 
 writeFileSync(configPath, JSON.stringify(config));
 
+const vcConfigPath = resolve('.vercel/output/functions/api.func/.vc-config.json');
+const vcConfig = JSON.parse(readFileSync(vcConfigPath, 'utf-8'));
+vcConfig.maxDuration = 60;
+writeFileSync(vcConfigPath, JSON.stringify(vcConfig));
+
 // generationService reads prompts at runtime (bundled next to api.func/index.js)
 const promptsSrc = resolve('server/prompts');
 const promptsDest = resolve('.vercel/output/functions/api.func/prompts');

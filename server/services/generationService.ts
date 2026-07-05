@@ -63,15 +63,32 @@ async function loadPrompt(relativePath: string): Promise<string> {
   }
 }
 
-async function buildGenerationPrompt(subjectCode: string, exerciseCount: number): Promise<string> {
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+}
+
+async function buildGenerationPrompt(
+  subjectCode: string,
+  exerciseCount: number,
+  orderOffset = 0,
+): Promise<string> {
   assertSupportedSubject(subjectCode);
 
-  const lastIndex = exerciseCount - 1;
+  const lastIndex = orderOffset + exerciseCount - 1;
   let subjectPrompt = await loadPrompt(`versions/v1.0.0/${subjectCode}.md`);
 
   subjectPrompt = subjectPrompt
     .replaceAll('{{exerciseCount}}', String(exerciseCount))
     .replaceAll('{{lastIndex}}', String(lastIndex));
+
+  if (orderOffset > 0) {
+    subjectPrompt = subjectPrompt.replace(
+      'orderIndex debe ir de 0 a',
+      `orderIndex debe ir de ${orderOffset} a`,
+    );
+  }
 
   return `${subjectPrompt}
 
@@ -106,22 +123,56 @@ function deduplicateQuestions(exercises: GeneratedExercise[]): boolean {
   return true;
 }
 
-async function generateWithRetries(
+const GENERATION_BATCH_SIZE = 10;
+const MAX_GENERATION_ATTEMPTS = 4;
+
+function remapOrderIndex(
+  exercises: GeneratedExercise[],
+  orderOffset: number,
+): GeneratedExercise[] {
+  return exercises.map((exercise, index) => ({
+    ...exercise,
+    orderIndex: orderOffset + index,
+  }));
+}
+
+function getRateLimitDelayMs(error: unknown): number | null {
+  if (!(error instanceof ApiError) || error.code !== 'GENERATION_RATE_LIMIT') {
+    return null;
+  }
+
+  const details = error.details;
+
+  if (details && typeof details === 'object' && 'retryAfterMs' in details) {
+    const retryAfterMs = (details as { retryAfterMs?: unknown }).retryAfterMs;
+
+    if (typeof retryAfterMs === 'number' && Number.isFinite(retryAfterMs)) {
+      return retryAfterMs;
+    }
+  }
+
+  return 20_000;
+}
+
+async function generateBatchWithRetries(
   subjectCode: string,
   exerciseCount: number,
-): Promise<{ exercises: GeneratedExercise[]; promptVersion: string }> {
+  orderOffset: number,
+): Promise<GeneratedExercise[]> {
   const systemPrompt = await loadPrompt('versions/v1.0.0/system.md');
-  const userPrompt = await buildGenerationPrompt(subjectCode, exerciseCount);
+  const userPrompt = await buildGenerationPrompt(subjectCode, exerciseCount, orderOffset);
+  const maxTokens = exerciseCount <= 10 ? 4096 : 8192;
 
   let lastError: unknown;
 
-  for (let attempt = 0; attempt < 3; attempt += 1) {
+  for (let attempt = 0; attempt < MAX_GENERATION_ATTEMPTS; attempt += 1) {
     try {
       const raw = await chatCompletionJson(
         systemPrompt,
         attempt > 0
-          ? `${userPrompt}\n\nIMPORTANTE: Responde únicamente con JSON válido. Genera exactamente ${exerciseCount} ejercicios.`
+          ? `${userPrompt}\n\nIMPORTANTE: Responde únicamente con JSON válido. Genera exactamente ${exerciseCount} ejercicios con orderIndex de ${orderOffset} a ${orderOffset + exerciseCount - 1}.`
           : userPrompt,
+        maxTokens,
       );
       const parsed = generateRoundResponseSchema.parse(parseLlmJson(raw));
 
@@ -129,22 +180,69 @@ async function generateWithRetries(
         throw new Error('Invalid exercise count');
       }
 
-      if (!deduplicateQuestions(parsed.exercises)) {
+      const exercises = remapOrderIndex(parsed.exercises, orderOffset);
+
+      if (!deduplicateQuestions(exercises)) {
         throw new Error('Duplicate questions');
       }
 
-      return { exercises: parsed.exercises, promptVersion: PROMPT_VERSION };
+      return exercises;
     } catch (error) {
       lastError = error;
+
+      const retryDelayMs = getRateLimitDelayMs(error);
+
+      if (retryDelayMs !== null && attempt < MAX_GENERATION_ATTEMPTS - 1) {
+        await sleep(retryDelayMs);
+      }
     }
   }
 
   console.error('Generation failed after retries:', lastError);
+
+  if (lastError instanceof ApiError) {
+    throw lastError;
+  }
+
   throw new ApiError(
     'GENERATION_FAILED',
     503,
     'No se pudieron generar los ejercicios. Inténtalo más tarde.',
   );
+}
+
+async function generateWithRetries(
+  subjectCode: string,
+  exerciseCount: number,
+): Promise<{ exercises: GeneratedExercise[]; promptVersion: string }> {
+  if (exerciseCount <= GENERATION_BATCH_SIZE) {
+    const exercises = await generateBatchWithRetries(subjectCode, exerciseCount, 0);
+    return { exercises, promptVersion: PROMPT_VERSION };
+  }
+
+  const exercises: GeneratedExercise[] = [];
+  let orderOffset = 0;
+
+  while (orderOffset < exerciseCount) {
+    const batchSize = Math.min(GENERATION_BATCH_SIZE, exerciseCount - orderOffset);
+    const batch = await generateBatchWithRetries(subjectCode, batchSize, orderOffset);
+    exercises.push(...batch);
+    orderOffset += batchSize;
+
+    if (orderOffset < exerciseCount) {
+      await sleep(1500);
+    }
+  }
+
+  if (!deduplicateQuestions(exercises)) {
+    throw new ApiError(
+      'GENERATION_FAILED',
+      503,
+      'No se pudieron generar los ejercicios. Inténtalo más tarde.',
+    );
+  }
+
+  return { exercises, promptVersion: PROMPT_VERSION };
 }
 
 export async function generateExercises(
