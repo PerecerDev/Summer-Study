@@ -10,9 +10,11 @@ import type {
 } from '@/shared/types/api/rounds';
 
 export function generateRound(subjectCode: SubjectCode): Promise<GenerateRoundResponse> {
+  const exerciseCount = Number(import.meta.env.VITE_E2E_EXERCISE_COUNT) || 20;
+
   return apiFetch<GenerateRoundResponse>('/rounds/generate', {
     method: 'POST',
-    body: JSON.stringify({ subjectCode, exerciseCount: 20, difficulty: 'mixed' }),
+    body: JSON.stringify({ subjectCode, exerciseCount, difficulty: 'mixed' }),
   });
 }
 

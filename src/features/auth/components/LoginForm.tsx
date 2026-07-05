@@ -44,6 +44,7 @@ export function LoginForm() {
         label="Usuario"
         autoComplete="username"
         autoCapitalize="none"
+        data-testid="login-username"
         {...register('username')}
         error={errors.username?.message}
       />
@@ -52,6 +53,7 @@ export function LoginForm() {
         label="Contraseña"
         type="password"
         autoComplete="current-password"
+        data-testid="login-password"
         {...register('password')}
         error={errors.password?.message}
       />
@@ -62,7 +64,7 @@ export function LoginForm() {
         </p>
       ) : null}
 
-      <Button type="submit" isLoading={isSubmitting || loginMutation.isPending}>
+      <Button type="submit" isLoading={isSubmitting || loginMutation.isPending} data-testid="login-submit">
         Entrar
       </Button>
     </form>

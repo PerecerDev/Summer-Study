@@ -10,3 +10,6 @@ node_modules
 .vite
 *.tsbuildinfo
 .vercel
+test-results/
+playwright-report/
+blob-report/

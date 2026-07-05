@@ -97,7 +97,9 @@ export function ResultsPage() {
     <RoundLayout>
     <div className="flex min-h-screen flex-col gap-8 p-6">
       <header className="space-y-3 text-center">
-        <p className="text-2xl font-extrabold text-primary">¡Ronda completada! 🎉</p>
+        <p className="text-2xl font-extrabold text-primary" data-testid="results-page">
+          ¡Ronda completada! 🎉
+        </p>
         <p className="text-lg text-text-muted">
           {SUBJECT_LABELS[round.subjectCode]} · {formatRoundDate(round.completedAt)}
         </p>

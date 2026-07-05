@@ -202,6 +202,7 @@ export function RoundPage() {
           <Button
             type="button"
             className="w-full"
+            data-testid="round-complete"
             onClick={() => {
               completeMutation.mutate();
             }}

@@ -8,7 +8,7 @@ import { SubjectCard } from '@/shared/components/ui/SubjectCard';
 import { Button } from '@/shared/components/ui/Button';
 import { LoadingPage } from '@/shared/components/ui/PageState';
 import { queryKeys } from '@/shared/lib/query-keys';
-import { SUBJECT_COLOR_CLASS } from '@/shared/lib/subjects';
+import { SUBJECT_COLOR_CLASS, SUBJECT_LABELS } from '@/shared/lib/subjects';
 import type { SubjectCode } from '@/shared/types/api/rounds';
 
 export function HomePage() {
@@ -88,12 +88,13 @@ export function HomePage() {
         {(['math', 'language', 'english', 'valencian', 'medi'] as const).map((code) => {
           const subject = subjectsQuery.data?.find((item) => item.code === code);
           const available = approvedCodes.has(code);
-          const name = subject?.name ?? code;
+          const name = subject?.name ?? SUBJECT_LABELS[code];
 
           return (
             <SubjectCard
               key={code}
               name={name}
+              testId={`subject-${code}`}
               colorClass={SUBJECT_COLOR_CLASS[code]}
               disabled={!available || generateMutation.isPending}
               subtitle={

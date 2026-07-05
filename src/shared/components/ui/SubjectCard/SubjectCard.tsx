@@ -3,6 +3,7 @@ interface SubjectCardProps {
   colorClass: string;
   subtitle?: string;
   disabled?: boolean;
+  testId?: string;
   onSelect: () => void;
 }
 
@@ -11,6 +12,7 @@ export function SubjectCard({
   colorClass,
   subtitle,
   disabled = false,
+  testId,
   onSelect,
 }: SubjectCardProps) {
   return (
@@ -18,6 +20,7 @@ export function SubjectCard({
       type="button"
       onClick={onSelect}
       disabled={disabled}
+      data-testid={testId}
       className={[
         'flex min-h-touch-lg w-full items-center justify-between rounded-2xl border-l-8 bg-surface p-6 text-left shadow-sm transition-transform active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60',
         colorClass,

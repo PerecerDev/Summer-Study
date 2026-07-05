@@ -128,10 +128,10 @@ Priority: **P0** = MVP blocker | **P1** = next slice | **P2** = future
 
 | ID | Story | Priority | Status |
 | -- | ----- | -------- | ------ |
-| E10-01 | E2E: happy path Playwright | P0 | Todo |
-| E10-02 | Lighthouse CI | P1 | Backlog |
-| E10-03 | Accessibility audit (core screens) | P0 | Todo |
-| E10-04 | iPad Air 2 performance pass | P0 | Todo |
+| E10-01 | E2E: happy path Playwright | P0 | Done |
+| E10-02 | Lighthouse CI | P1 | Done |
+| E10-03 | Accessibility audit (core screens) | P0 | Done |
+| E10-04 | iPad Air 2 performance pass | P0 | Done |
 
 ---
 
