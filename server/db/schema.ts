@@ -124,12 +124,76 @@ export const exerciseAttempts = pgTable('exercise_attempts', {
   timeSpentSeconds: integer('time_spent_seconds'),
 });
 
+export interface SubjectStatJson {
+  subjectCode: string;
+  roundsCompleted: number;
+  accuracyPercent: number;
+  lastPlayedAt?: string;
+}
+
+export const userProgress = pgTable('user_progress', {
+  userId: uuid('user_id')
+    .primaryKey()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  totalRoundsCompleted: integer('total_rounds_completed').notNull().default(0),
+  totalCorrect: integer('total_correct').notNull().default(0),
+  accuracyPercent: integer('accuracy_percent').notNull().default(0),
+  currentStreak: integer('current_streak').notNull().default(0),
+  longestStreak: integer('longest_streak').notNull().default(0),
+  totalStars: integer('total_stars').notNull().default(0),
+  totalCoins: integer('total_coins').notNull().default(0),
+  totalXp: integer('total_xp').notNull().default(0),
+  level: integer('level').notNull().default(1),
+  lastPracticeDate: varchar('last_practice_date', { length: 10 }),
+  subjectStats: jsonb('subject_stats').$type<SubjectStatJson[]>().notNull().default([]),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const rewardEvents = pgTable('reward_events', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  type: varchar('type', { length: 32 }).notNull(),
+  amount: integer('amount'),
+  badgeCode: varchar('badge_code', { length: 64 }),
+  metadata: jsonb('metadata').$type<Record<string, unknown>>(),
+  sourceRoundId: uuid('source_round_id').references(() => rounds.id, { onDelete: 'set null' }),
+  earnedAt: timestamp('earned_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const badges = pgTable('badges', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  code: varchar('code', { length: 64 }).notNull().unique(),
+  name: varchar('name', { length: 64 }).notNull(),
+  description: text('description').notNull(),
+  icon: varchar('icon', { length: 16 }).notNull().default('🏅'),
+});
+
+export const userBadges = pgTable(
+  'user_badges',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    badgeId: uuid('badge_id')
+      .notNull()
+      .references(() => badges.id, { onDelete: 'cascade' }),
+    unlockedAt: timestamp('unlocked_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [uniqueIndex('user_badges_user_badge_idx').on(table.userId, table.badgeId)],
+);
+
 export const usersRelations = relations(users, ({ one, many }) => ({
   parent: one(parents, { fields: [users.id], references: [parents.userId] }),
   sessions: many(sessions),
   parentTokens: many(parentTokens),
   rounds: many(rounds),
   exerciseAttempts: many(exerciseAttempts),
+  progress: one(userProgress, { fields: [users.id], references: [userProgress.userId] }),
+  rewardEvents: many(rewardEvents),
+  userBadges: many(userBadges),
 }));
 
 export const parentsRelations = relations(parents, ({ one }) => ({
@@ -168,3 +232,7 @@ export type DbSubject = typeof subjects.$inferSelect;
 export type DbRound = typeof rounds.$inferSelect;
 export type DbExercise = typeof exercises.$inferSelect;
 export type DbExerciseAttempt = typeof exerciseAttempts.$inferSelect;
+export type DbUserProgress = typeof userProgress.$inferSelect;
+export type DbRewardEvent = typeof rewardEvents.$inferSelect;
+export type DbBadge = typeof badges.$inferSelect;
+export type DbUserBadge = typeof userBadges.$inferSelect;

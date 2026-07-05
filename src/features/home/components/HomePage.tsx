@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
+import { StreakChip, useUserProgress, XpBar } from '@/features/gamification';
 import { useSession } from '@/features/auth/hooks/useAuth';
 import { generateRound, getActiveRound } from '@/features/rounds/services/roundService';
 import { SubjectCard } from '@/shared/components/ui/SubjectCard';
@@ -34,6 +35,7 @@ export function HomePage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const sessionQuery = useSession();
+  const progressQuery = useUserProgress();
   const displayName = sessionQuery.data?.user.displayName ?? 'estudiante';
 
   const activeRoundQuery = useQuery({
@@ -56,10 +58,23 @@ export function HomePage() {
 
   return (
     <div className="space-y-8">
-      <header className="space-y-2">
+      <header className="space-y-3">
         <p className="text-lg text-text-muted">¡Hola, {displayName}!</p>
         <h1 className="text-3xl font-extrabold text-text-primary">¿Qué quieres practicar hoy?</h1>
         <p className="text-lg text-text-muted">Elige una materia para empezar una ronda de 20 ejercicios.</p>
+        {progressQuery.data ? (
+          <div className="flex flex-wrap items-center gap-3">
+            <StreakChip streak={progressQuery.data.currentStreak} />
+            <div className="min-w-[12rem] flex-1">
+              <XpBar
+                compact
+                level={progressQuery.data.level}
+                xpInLevel={progressQuery.data.xpInLevel}
+                xpForNextLevel={progressQuery.data.xpForNextLevel}
+              />
+            </div>
+          </div>
+        ) : null}
       </header>
 
       {activeRoundQuery.data?.round ? (

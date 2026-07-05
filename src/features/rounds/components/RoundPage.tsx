@@ -74,6 +74,8 @@ export function RoundPage() {
     onSuccess: (data) => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.rounds.active });
       void queryClient.invalidateQueries({ queryKey: queryKeys.history.list() });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.progress.summary });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.achievements.list });
       if (roundId) {
         navigate(`/round/${roundId}/results`, {
           state: { completeResult: data },

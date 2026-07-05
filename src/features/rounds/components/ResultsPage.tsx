@@ -42,13 +42,15 @@ export function ResultsPage() {
   const exercises = detailQuery.data?.exercises ?? [];
   const wrongExercises = exercises.filter((exercise) => exercise.isCorrect === false);
 
-  const scorePercent = completeState?.completeResult?.scorePercent ?? round?.scorePercent ?? 0;
-  const correctCount = completeState?.completeResult?.correctCount ?? round?.correctCount ?? 0;
+  const result = completeState?.completeResult;
+  const scorePercent = result?.scorePercent ?? round?.scorePercent ?? 0;
+  const correctCount = result?.correctCount ?? round?.correctCount ?? 0;
   const exerciseCount = round?.exerciseCount ?? 20;
-  const durationSeconds =
-    completeState?.completeResult?.durationSeconds ?? round?.durationSeconds ?? 0;
-  const stars =
-    completeState?.completeResult?.rewards.find((reward) => reward.type === 'star')?.amount ?? 0;
+  const durationSeconds = result?.durationSeconds ?? round?.durationSeconds ?? 0;
+  const starsEarned = result?.starsEarned ?? 0;
+  const xpGained = result?.xpGained ?? 0;
+  const levelUp = result?.levelUp;
+  const newBadges = result?.newBadges ?? [];
 
   if (detailQuery.isLoading) {
     return (
@@ -112,10 +114,33 @@ export function ResultsPage() {
           ¡Has acertado {correctCount} de {exerciseCount}!
         </p>
         <p className="mt-2 text-lg text-text-muted">Tiempo: {formatDuration(durationSeconds)}</p>
-        {stars > 0 && (
-          <p className="mt-4 text-xl font-bold text-reward-gold">⭐ {stars} estrellas</p>
-        )}
       </div>
+
+      {(starsEarned > 0 || xpGained > 0) && (
+        <div className="rounded-2xl bg-reward-gold/10 p-6 text-center shadow-sm">
+          <p className="text-lg font-bold text-text-primary">Recompensas de esta ronda</p>
+          <div className="mt-3 flex flex-wrap items-center justify-center gap-4 text-xl font-extrabold">
+            {starsEarned > 0 ? (
+              <span className="text-reward-gold">⭐ +{starsEarned}</span>
+            ) : null}
+            {xpGained > 0 ? <span className="text-primary">✨ +{xpGained} XP</span> : null}
+          </div>
+          {levelUp ? (
+            <p className="mt-3 text-lg font-bold text-success">
+              ¡Has subido al nivel {levelUp.newLevel}! 🎉
+            </p>
+          ) : null}
+          {newBadges.length > 0 ? (
+            <ul className="mt-3 space-y-1 text-base font-semibold text-text-primary">
+              {newBadges.map((badge) => (
+                <li key={badge.code}>
+                  {badge.icon} Nueva insignia: {badge.name}
+                </li>
+              ))}
+            </ul>
+          ) : null}
+        </div>
+      )}
 
       {wrongExercises.length > 0 && (
         <div className="space-y-3">

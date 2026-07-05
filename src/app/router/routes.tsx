@@ -4,10 +4,10 @@ import { AppLayout } from '@/app/layouts/AppLayout';
 import { ProtectedRoute } from '@/app/router/ProtectedRoute';
 import { LoginPage } from '@/features/auth/components/LoginPage';
 import { HistoryPage, RoundDetailPage } from '@/features/history';
+import { AchievementsPage, ProgressPage } from '@/features/gamification';
 import { HomePage } from '@/features/home/components/HomePage';
 import { ProfilePage } from '@/features/profile';
 import { ResultsPage, RoundPage } from '@/features/rounds';
-import { PlaceholderPage } from '@/shared/components/PlaceholderPage';
 
 export const router = createBrowserRouter([
   {
@@ -35,24 +35,8 @@ export const router = createBrowserRouter([
               { index: true, element: <HomePage /> },
               { path: 'history', element: <HistoryPage /> },
               { path: 'history/:roundId', element: <RoundDetailPage /> },
-              {
-                path: 'progress',
-                element: (
-                  <PlaceholderPage
-                    title="Progreso"
-                    description="Estadísticas de avance — pendiente (Fase 2)."
-                  />
-                ),
-              },
-              {
-                path: 'achievements',
-                element: (
-                  <PlaceholderPage
-                    title="Logros"
-                    description="Insignias y logros — pendiente (Fase 2)."
-                  />
-                ),
-              },
+              { path: 'progress', element: <ProgressPage /> },
+              { path: 'achievements', element: <AchievementsPage /> },
               {
                 path: 'profile',
                 element: <ProfilePage />,

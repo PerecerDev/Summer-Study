@@ -94,11 +94,11 @@ Priority: **P0** = MVP blocker | **P1** = next slice | **P2** = future
 
 | ID | Story | Priority | Status |
 | -- | ----- | -------- | ------ |
-| E7-01 | Reward calculation service | P1 | Backlog |
-| E7-02 | Stars on results screen | P1 | Backlog |
-| E7-03 | XP + level on profile | P1 | Backlog |
-| E7-04 | Streak tracking | P1 | Backlog |
-| E7-05 | Achievements page + badges | P1 | Backlog |
+| E7-01 | Reward calculation service | P1 | Done |
+| E7-02 | Stars on results screen | P1 | Done |
+| E7-03 | XP + level on profile | P1 | Done |
+| E7-04 | Streak tracking | P1 | Done |
+| E7-05 | Achievements page + badges | P1 | Done |
 
 ---
 

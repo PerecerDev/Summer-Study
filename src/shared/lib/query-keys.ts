@@ -1,5 +1,11 @@
 export const queryKeys = {
   session: ['session'] as const,
+  progress: {
+    summary: ['progress', 'summary'] as const,
+  },
+  achievements: {
+    list: ['achievements', 'list'] as const,
+  },
   rounds: {
     active: ['rounds', 'active'] as const,
     detail: (roundId: string) => ['rounds', 'detail', roundId] as const,
