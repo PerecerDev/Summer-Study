@@ -123,8 +123,8 @@ function deduplicateQuestions(exercises: GeneratedExercise[]): boolean {
   return true;
 }
 
-const GENERATION_BATCH_SIZE = 10;
-const GENERATION_BATCH_PAUSE_MS = 22_000;
+const GENERATION_BATCH_SIZE = 5;
+const GENERATION_BATCH_PAUSE_MS = 12_000;
 const MAX_GENERATION_ATTEMPTS = 4;
 
 function remapOrderIndex(
@@ -162,7 +162,7 @@ async function generateBatchWithRetries(
 ): Promise<GeneratedExercise[]> {
   const systemPrompt = await loadPrompt('versions/v1.0.0/system.md');
   const userPrompt = await buildGenerationPrompt(subjectCode, exerciseCount, orderOffset);
-  const maxTokens = exerciseCount <= 10 ? 4096 : 8192;
+  const maxTokens = exerciseCount <= 5 ? 2048 : exerciseCount <= 10 ? 4096 : 8192;
 
   let lastError: unknown;
 
