@@ -106,11 +106,11 @@ Priority: **P0** = MVP blocker | **P1** = next slice | **P2** = future
 
 | ID | Story | Priority | Status |
 | -- | ----- | -------- | ------ |
-| E8-01 | Prompt templates: Lengua | P1 | Backlog |
-| E8-02 | Prompt templates: Inglés | P1 | Backlog |
-| E8-03 | Prompt templates: Valenciano | P1 | Backlog |
-| E8-04 | Prompt templates: Medi | P1 | Backlog |
-| E8-05 | Parent review per subject | P1 | Backlog |
+| E8-01 | Prompt templates: Lengua | P1 | Done |
+| E8-02 | Prompt templates: Inglés | P1 | Done |
+| E8-03 | Prompt templates: Valenciano | P1 | Done |
+| E8-04 | Prompt templates: Medi | P1 | Done |
+| E8-05 | Parent review per subject | P1 | Done |
 
 ---
 

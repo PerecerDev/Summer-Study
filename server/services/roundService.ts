@@ -4,7 +4,7 @@ import { exerciseAttempts, exercises, rounds } from '../db/schema.js';
 import type { GeneratedExercise } from '../schemas/rounds.js';
 import { generateExercises } from './generationService.js';
 import { processRoundRewards } from './rewardService.js';
-import { getSubjectByCode } from './subjectService.js';
+import { getSubjectByCode, isSubjectAvailableForUser } from './subjectService.js';
 import { ApiError } from '../lib/errors.js';
 
 export interface ExerciseDto {
@@ -136,8 +136,14 @@ export async function generateRound(
     throw new ApiError('SUBJECT_UNAVAILABLE', 400, 'Esta materia no está disponible');
   }
 
-  if (subjectCode !== 'math') {
-    throw new ApiError('SUBJECT_UNAVAILABLE', 400, 'Esta materia aún no está disponible');
+  const available = await isSubjectAvailableForUser(userId, subjectCode);
+
+  if (!available) {
+    throw new ApiError(
+      'SUBJECT_NOT_APPROVED',
+      403,
+      'Papá o mamá deben activar esta materia primero',
+    );
   }
 
   const { exercises: generated, promptVersion } = await generateExercises(

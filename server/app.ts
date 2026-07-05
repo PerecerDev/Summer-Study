@@ -5,7 +5,7 @@ import { historyRoutes } from './routes/history.js';
 import { isLlmConfigured } from './services/llmClient.js';
 import { progressRoutes } from './routes/progress.js';
 import { roundRoutes } from './routes/rounds.js';
-import { subjectRoutes } from './routes/subjects.js';
+import { subjectRoutes, parentRoutes } from './routes/subjects.js';
 import { ApiError, errorResponse } from './lib/errors.js';
 
 export function createApp() {
@@ -16,6 +16,7 @@ export function createApp() {
     cors({
       origin: (origin) => origin ?? '*',
       credentials: true,
+      allowHeaders: ['Content-Type', 'X-Parent-Token'],
     }),
   );
 
@@ -42,6 +43,7 @@ export function createApp() {
 
   app.route('/auth', authRoutes);
   app.route('/subjects', subjectRoutes);
+  app.route('/parent', parentRoutes);
   app.route('/rounds', roundRoutes);
   app.route('/history', historyRoutes);
   app.route('/', progressRoutes);

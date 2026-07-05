@@ -4,6 +4,7 @@ import {
   integer,
   jsonb,
   pgTable,
+  primaryKey,
   text,
   timestamp,
   uniqueIndex,
@@ -185,6 +186,24 @@ export const userBadges = pgTable(
   (table) => [uniqueIndex('user_badges_user_badge_idx').on(table.userId, table.badgeId)],
 );
 
+export const userSubjectAccess = pgTable(
+  'user_subject_access',
+  {
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    subjectId: uuid('subject_id')
+      .notNull()
+      .references(() => subjects.id, { onDelete: 'cascade' }),
+    parentApproved: boolean('parent_approved').notNull().default(false),
+    approvedAt: timestamp('approved_at', { withTimezone: true }),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    pk: primaryKey({ columns: [table.userId, table.subjectId] }),
+  }),
+);
+
 export const usersRelations = relations(users, ({ one, many }) => ({
   parent: one(parents, { fields: [users.id], references: [parents.userId] }),
   sessions: many(sessions),
@@ -194,6 +213,7 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   progress: one(userProgress, { fields: [users.id], references: [userProgress.userId] }),
   rewardEvents: many(rewardEvents),
   userBadges: many(userBadges),
+  subjectAccess: many(userSubjectAccess),
 }));
 
 export const parentsRelations = relations(parents, ({ one }) => ({
@@ -206,6 +226,7 @@ export const sessionsRelations = relations(sessions, ({ one }) => ({
 
 export const subjectsRelations = relations(subjects, ({ many }) => ({
   rounds: many(rounds),
+  userAccess: many(userSubjectAccess),
 }));
 
 export const roundsRelations = relations(rounds, ({ one, many }) => ({
@@ -236,3 +257,4 @@ export type DbUserProgress = typeof userProgress.$inferSelect;
 export type DbRewardEvent = typeof rewardEvents.$inferSelect;
 export type DbBadge = typeof badges.$inferSelect;
 export type DbUserBadge = typeof userBadges.$inferSelect;
+export type DbUserSubjectAccess = typeof userSubjectAccess.$inferSelect;

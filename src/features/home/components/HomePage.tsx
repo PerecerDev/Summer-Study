@@ -3,39 +3,20 @@ import { useNavigate } from 'react-router-dom';
 import { StreakChip, useUserProgress, XpBar } from '@/features/gamification';
 import { useSession } from '@/features/auth/hooks/useAuth';
 import { generateRound, getActiveRound } from '@/features/rounds/services/roundService';
+import { useSubjects } from '@/features/subjects';
 import { SubjectCard } from '@/shared/components/ui/SubjectCard';
 import { Button } from '@/shared/components/ui/Button';
+import { LoadingPage } from '@/shared/components/ui/PageState';
 import { queryKeys } from '@/shared/lib/query-keys';
+import { SUBJECT_COLOR_CLASS } from '@/shared/lib/subjects';
 import type { SubjectCode } from '@/shared/types/api/rounds';
-
-const subjects = [
-  { code: 'math' as const, name: 'Matemáticas', colorClass: 'border-subject-math', available: true },
-  {
-    code: 'language' as const,
-    name: 'Lengua',
-    colorClass: 'border-subject-language',
-    available: false,
-  },
-  {
-    code: 'english' as const,
-    name: 'Inglés',
-    colorClass: 'border-subject-english',
-    available: false,
-  },
-  {
-    code: 'valencian' as const,
-    name: 'Valenciano',
-    colorClass: 'border-subject-valencian',
-    available: false,
-  },
-  { code: 'medi' as const, name: 'Medi', colorClass: 'border-subject-medi', available: false },
-];
 
 export function HomePage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const sessionQuery = useSession();
   const progressQuery = useUserProgress();
+  const subjectsQuery = useSubjects();
   const displayName = sessionQuery.data?.user.displayName ?? 'estudiante';
 
   const activeRoundQuery = useQuery({
@@ -51,10 +32,15 @@ export function HomePage() {
     },
   });
 
-  const handleSelect = (code: SubjectCode, available: boolean) => {
-    if (!available) return;
+  const handleSelect = (code: SubjectCode) => {
     generateMutation.mutate(code);
   };
+
+  if (subjectsQuery.isLoading) {
+    return <LoadingPage message="Cargando materias…" />;
+  }
+
+  const approvedCodes = new Set(subjectsQuery.data?.map((subject) => subject.code) ?? []);
 
   return (
     <div className="space-y-8">
@@ -99,18 +85,26 @@ export function HomePage() {
       )}
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2" role="list">
-        {subjects.map((subject) => (
-          <SubjectCard
-            key={subject.code}
-            name={subject.name}
-            colorClass={subject.colorClass}
-            disabled={!subject.available || generateMutation.isPending}
-            subtitle={subject.available ? undefined : 'Próximamente'}
-            onSelect={() => {
-              handleSelect(subject.code, subject.available);
-            }}
-          />
-        ))}
+        {(['math', 'language', 'english', 'valencian', 'medi'] as const).map((code) => {
+          const subject = subjectsQuery.data?.find((item) => item.code === code);
+          const available = approvedCodes.has(code);
+          const name = subject?.name ?? code;
+
+          return (
+            <SubjectCard
+              key={code}
+              name={name}
+              colorClass={SUBJECT_COLOR_CLASS[code]}
+              disabled={!available || generateMutation.isPending}
+              subtitle={
+                available ? undefined : 'Pide a papá o mamá que la active'
+              }
+              onSelect={() => {
+                handleSelect(code);
+              }}
+            />
+          );
+        })}
       </div>
     </div>
   );

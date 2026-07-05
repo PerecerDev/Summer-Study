@@ -3,9 +3,10 @@ import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
   generateRoundResponseSchema,
+  subjectCodeSchema,
   type GeneratedExercise,
 } from '../schemas/rounds.js';
-import { generateMockMathExercises } from './mockExerciseGenerator.js';
+import { generateMockExercises, type SubjectCode } from './mockSubjectExercises.js';
 import { chatCompletionJson, isLlmConfigured, parseLlmJson } from './llmClient.js';
 import { ApiError } from '../lib/errors.js';
 
@@ -17,26 +18,29 @@ export function shouldUseMockLlm(): boolean {
   return process.env.MOCK_LLM === 'true' || !isLlmConfigured();
 }
 
+function assertSupportedSubject(subjectCode: string): void {
+  const parsed = subjectCodeSchema.safeParse(subjectCode);
+
+  if (!parsed.success) {
+    throw new ApiError('VALIDATION_ERROR', 400, 'Materia no válida');
+  }
+}
+
 async function loadPrompt(relativePath: string): Promise<string> {
   return readFile(resolve(PROMPTS_DIR, relativePath), 'utf-8');
 }
 
-function buildGenerationPrompt(subjectCode: string, exerciseCount: number): string {
-  if (subjectCode !== 'math') {
-    throw new ApiError('SUBJECT_UNAVAILABLE', 400, 'Esta materia aún no está disponible');
-  }
+async function buildGenerationPrompt(subjectCode: string, exerciseCount: number): Promise<string> {
+  assertSupportedSubject(subjectCode);
 
   const lastIndex = exerciseCount - 1;
+  let subjectPrompt = await loadPrompt(`versions/v1.0.0/${subjectCode}.md`);
 
-  return `Genera exactamente ${exerciseCount} ejercicios de matemáticas (4º Primaria, España).
+  subjectPrompt = subjectPrompt
+    .replaceAll('{{exerciseCount}}', String(exerciseCount))
+    .replaceAll('{{lastIndex}}', String(lastIndex));
 
-Requisitos:
-- orderIndex de 0 a ${lastIndex}, sin saltos ni duplicados
-- Tipos: multiple_choice, true_false, fill_blank, short_answer
-- topicTag: numeros_operaciones | fracciones_basicas | geometria_plana | medidas | problemas_aritmeticos
-- difficulty: easy | medium | hard (mezcla: 40% easy, 40% medium, 20% hard)
-- Preguntas distintas entre sí
-- promptVersion: "${PROMPT_VERSION}"
+  return `${subjectPrompt}
 
 Responde SOLO con JSON válido:
 {
@@ -44,11 +48,11 @@ Responde SOLO con JSON válido:
     {
       "orderIndex": 0,
       "type": "multiple_choice",
-      "question": "¿Cuánto es 12 + 8?",
-      "options": ["18", "20", "22", "19"],
-      "correctAnswer": "20",
-      "explanation": "12 + 8 = 20",
-      "topicTag": "numeros_operaciones",
+      "question": "Pregunta de ejemplo",
+      "options": ["A", "B", "C", "D"],
+      "correctAnswer": "A",
+      "explanation": "Breve explicación",
+      "topicTag": "tema",
       "difficulty": "easy"
     }
   ],
@@ -74,8 +78,7 @@ async function generateWithRetries(
   exerciseCount: number,
 ): Promise<{ exercises: GeneratedExercise[]; promptVersion: string }> {
   const systemPrompt = await loadPrompt('versions/v1.0.0/system.md');
-  const subjectPrompt = await loadPrompt(`versions/v1.0.0/${subjectCode}.md`);
-  const userPrompt = `${subjectPrompt}\n\n${buildGenerationPrompt(subjectCode, exerciseCount)}`;
+  const userPrompt = await buildGenerationPrompt(subjectCode, exerciseCount);
 
   let lastError: unknown;
 
@@ -115,9 +118,7 @@ export async function generateExercises(
   subjectCode: string,
   exerciseCount: number,
 ): Promise<{ exercises: GeneratedExercise[]; promptVersion: string }> {
-  if (subjectCode !== 'math') {
-    throw new ApiError('SUBJECT_UNAVAILABLE', 400, 'Esta materia aún no está disponible');
-  }
+  assertSupportedSubject(subjectCode);
 
   if (shouldUseMockLlm()) {
     if (process.env.NODE_ENV === 'production' && !isLlmConfigured()) {
@@ -129,7 +130,7 @@ export async function generateExercises(
     }
 
     return {
-      exercises: generateMockMathExercises(exerciseCount),
+      exercises: generateMockExercises(subjectCode as SubjectCode, exerciseCount),
       promptVersion: PROMPT_VERSION,
     };
   }

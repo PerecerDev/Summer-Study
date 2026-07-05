@@ -30,10 +30,12 @@ async function seedSubjects() {
         name: subject.name,
         icon: subject.icon,
         sortOrder: subject.sortOrder,
-        isActive: subject.code === 'math',
+        isActive: true,
       });
     }
   }
+
+  await db.update(subjects).set({ isActive: true });
 }
 
 async function ensureUser(

@@ -6,6 +6,10 @@ export const queryKeys = {
   achievements: {
     list: ['achievements', 'list'] as const,
   },
+  subjects: {
+    list: ['subjects', 'list'] as const,
+    parent: ['subjects', 'parent'] as const,
+  },
   rounds: {
     active: ['rounds', 'active'] as const,
     detail: (roundId: string) => ['rounds', 'detail', roundId] as const,
