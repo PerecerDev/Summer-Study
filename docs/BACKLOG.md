@@ -70,11 +70,11 @@ Priority: **P0** = MVP blocker | **P1** = next slice | **P2** = future
 
 | ID | Story | Priority | Status |
 | -- | ----- | -------- | ------ |
-| E5-01 | Results screen | P0 | Todo |
-| E5-02 | GET /history/rounds | P0 | Todo |
-| E5-03 | GET /rounds/:id (detail) | P0 | Todo |
-| E5-04 | History list page | P0 | Todo |
-| E5-05 | Round detail page | P0 | Todo |
+| E5-01 | Results screen | P0 | Done |
+| E5-02 | GET /history/rounds | P0 | Done |
+| E5-03 | GET /rounds/:id (detail) | P0 | Done |
+| E5-04 | History list page | P0 | Done |
+| E5-05 | Round detail page | P0 | Done |
 
 ---
 

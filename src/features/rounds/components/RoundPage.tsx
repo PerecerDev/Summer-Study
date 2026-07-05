@@ -24,11 +24,6 @@ export function RoundPage() {
   const [feedback, setFeedback] = useState<SubmitAttemptResponse | null>(null);
   const [showSkip, setShowSkip] = useState(false);
   const [showDefer, setShowDefer] = useState(false);
-  const [results, setResults] = useState<{
-    correctCount: number;
-    scorePercent: number;
-    durationSeconds: number;
-  } | null>(null);
   const [exerciseStartedAt, setExerciseStartedAt] = useState(() => Date.now());
 
   const roundQuery = useQuery({
@@ -46,6 +41,12 @@ export function RoundPage() {
       setCurrentIndex(firstUnanswered);
     }
   }, [exercises]);
+
+  useEffect(() => {
+    if (round?.status === 'completed' && roundId) {
+      navigate(`/round/${roundId}/results`, { replace: true });
+    }
+  }, [round?.status, roundId, navigate]);
 
   const answeredCount = exercises.filter((exercise) => exercise.answered).length;
   const currentExercise = exercises[currentIndex];
@@ -68,12 +69,13 @@ export function RoundPage() {
       return completeRound(roundId);
     },
     onSuccess: (data) => {
-      setResults({
-        correctCount: data.correctCount,
-        scorePercent: data.scorePercent,
-        durationSeconds: data.durationSeconds,
-      });
       void queryClient.invalidateQueries({ queryKey: queryKeys.rounds.active });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.history.list() });
+      if (roundId) {
+        navigate(`/round/${roundId}/results`, {
+          state: { completeResult: data },
+        });
+      }
     },
   });
 
@@ -122,30 +124,6 @@ export function RoundPage() {
         <p className="text-lg text-text-muted">No se encontró la ronda.</p>
         <Button
           type="button"
-          onClick={() => {
-            navigate('/');
-          }}
-        >
-          Volver al inicio
-        </Button>
-      </div>
-    );
-  }
-
-  if (results) {
-    return (
-      <div className="mx-auto max-w-xl space-y-6 p-6 text-center">
-        <h1 className="text-3xl font-extrabold text-text-primary">¡Ronda terminada!</h1>
-        <p className="text-5xl font-extrabold text-primary">{results.scorePercent}%</p>
-        <p className="text-xl text-text-muted">
-          {results.correctCount} de {round.exerciseCount} correctas
-        </p>
-        <p className="text-lg text-text-muted">
-          Tiempo: {Math.floor(results.durationSeconds / 60)} min {results.durationSeconds % 60} s
-        </p>
-        <Button
-          type="button"
-          className="w-full"
           onClick={() => {
             navigate('/');
           }}
