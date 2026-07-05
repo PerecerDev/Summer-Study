@@ -1,4 +1,4 @@
-import { readFileSync, writeFileSync } from 'node:fs';
+import { cpSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 const configPath = resolve('.vercel/output/config.json');
@@ -11,3 +11,10 @@ config.routes = [
 ];
 
 writeFileSync(configPath, JSON.stringify(config));
+
+// generationService reads prompts at runtime (bundled next to api.func/index.js)
+const promptsSrc = resolve('server/prompts');
+const promptsDest = resolve('.vercel/output/functions/api.func/prompts');
+
+mkdirSync(promptsDest, { recursive: true });
+cpSync(promptsSrc, promptsDest, { recursive: true });

@@ -1,4 +1,5 @@
-import { readFile } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
+import { readFile as readFileAsync } from 'node:fs/promises';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
@@ -12,7 +13,19 @@ import { ApiError } from '../lib/errors.js';
 
 const PROMPT_VERSION = '1.0.0';
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const PROMPTS_DIR = resolve(__dirname, '../prompts');
+
+function getPromptsDir(): string {
+  const candidates = [
+    resolve(__dirname, 'prompts'),
+    resolve(__dirname, '../prompts'),
+  ];
+
+  for (const dir of candidates) {
+    if (existsSync(dir)) return dir;
+  }
+
+  return candidates[1] ?? candidates[0];
+}
 
 export function shouldUseMockLlm(): boolean {
   return process.env.MOCK_LLM === 'true' || !isLlmConfigured();
@@ -27,7 +40,27 @@ function assertSupportedSubject(subjectCode: string): void {
 }
 
 async function loadPrompt(relativePath: string): Promise<string> {
-  return readFile(resolve(PROMPTS_DIR, relativePath), 'utf-8');
+  const promptsDir = getPromptsDir();
+
+  try {
+    return await readFileAsync(resolve(promptsDir, relativePath), 'utf-8');
+  } catch (error) {
+    const code =
+      error && typeof error === 'object' && 'code' in error
+        ? String((error as NodeJS.ErrnoException).code)
+        : undefined;
+
+    if (code === 'ENOENT') {
+      console.error('Prompt file missing:', relativePath, 'from', promptsDir);
+      throw new ApiError(
+        'GENERATION_FAILED',
+        503,
+        'No se pudieron generar los ejercicios. Inténtalo más tarde.',
+      );
+    }
+
+    throw error;
+  }
 }
 
 async function buildGenerationPrompt(subjectCode: string, exerciseCount: number): Promise<string> {
