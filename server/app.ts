@@ -1,6 +1,8 @@
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { authRoutes } from './routes/auth.js';
+import { roundRoutes } from './routes/rounds.js';
+import { subjectRoutes } from './routes/subjects.js';
 import { ApiError, errorResponse } from './lib/errors.js';
 
 export function createApp() {
@@ -35,6 +37,8 @@ export function createApp() {
   );
 
   app.route('/auth', authRoutes);
+  app.route('/subjects', subjectRoutes);
+  app.route('/rounds', roundRoutes);
 
   app.onError((err, c) => {
     if (err instanceof ApiError) {

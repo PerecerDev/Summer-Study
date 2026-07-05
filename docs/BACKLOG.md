@@ -15,8 +15,8 @@ Priority: **P0** = MVP blocker | **P1** = next slice | **P2** = future
 | E1-02 | Configure ESLint, Prettier, Husky, lint-staged | P0 | Done |
 | E1-03 | Configure Vitest + RTL | P0 | Done |
 | E1-04 | GitHub Actions CI (lint, test, build) | P0 | Done |
-| E1-05 | Vercel project + env vars | P0 | Todo |
-| E1-06 | Neon project + dev database | P0 | Todo |
+| E1-05 | Vercel project + env vars | P0 | Done |
+| E1-06 | Neon project + dev database | P0 | Done |
 | E1-07 | Branches `main` and `develop` + protection | P0 | Done (local) |
 | E1-08 | `.env.example` and secrets documentation | P0 | Done |
 
@@ -39,11 +39,11 @@ Priority: **P0** = MVP blocker | **P1** = next slice | **P2** = future
 
 | ID | Story | Priority | Status |
 | -- | ----- | -------- | ------ |
-| E3-01 | Seed 5 subjects in DB | P0 | Todo |
-| E3-02 | GET /subjects | P0 | Todo |
-| E3-03 | Home page with SubjectGrid | P0 | Todo |
-| E3-04 | SubjectCard component | P0 | Todo |
-| E3-05 | Active round banner (resume) | P0 | Todo |
+| E3-01 | Seed 5 subjects in DB | P0 | Done |
+| E3-02 | GET /subjects | P0 | Done |
+| E3-03 | Home page with SubjectGrid | P0 | Done |
+| E3-04 | SubjectCard component | P0 | Done |
+| E3-05 | Active round banner (resume) | P0 | Done |
 
 ---
 
@@ -51,18 +51,18 @@ Priority: **P0** = MVP blocker | **P1** = next slice | **P2** = future
 
 | ID | Story | Priority | Status |
 | -- | ----- | -------- | ------ |
-| E4-01 | Prompt templates v1.0.0 (math) | P0 | Todo |
-| E4-02 | Zod schema for generated exercises | P0 | Todo |
-| E4-03 | Generation service + retry logic | P0 | Todo |
-| E4-04 | POST /rounds/generate | P0 | Todo |
-| E4-05 | DB schema: rounds, exercises, attempts | P0 | Todo |
-| E4-06 | POST /rounds/:id/attempts | P0 | Todo |
-| E4-07 | POST /rounds/:id/complete | P0 | Todo |
-| E4-08 | POST /rounds/:id/abandon | P0 | Todo |
-| E4-09 | Round page + ExerciseView | P0 | Todo |
-| E4-10 | ProgressBar component | P0 | Todo |
-| E4-11 | Skip and defer modals | P0 | Todo |
-| E4-12 | Feedback panel (correct/incorrect) | P0 | Todo |
+| E4-01 | Prompt templates v1.0.0 (math) | P0 | Done |
+| E4-02 | Zod schema for generated exercises | P0 | Done |
+| E4-03 | Generation service + retry logic | P0 | Done |
+| E4-04 | POST /rounds/generate | P0 | Done |
+| E4-05 | DB schema: rounds, exercises, attempts | P0 | Done |
+| E4-06 | POST /rounds/:id/attempts | P0 | Done |
+| E4-07 | POST /rounds/:id/complete | P0 | Done |
+| E4-08 | POST /rounds/:id/abandon | P0 | Done |
+| E4-09 | Round page + ExerciseView | P0 | Done |
+| E4-10 | ProgressBar component | P0 | Done |
+| E4-11 | Skip and defer modals | P0 | Done |
+| E4-12 | Feedback panel (correct/incorrect) | P0 | Done |
 
 ---
 

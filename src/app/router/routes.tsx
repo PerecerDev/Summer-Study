@@ -4,6 +4,7 @@ import { ProtectedRoute } from '@/app/router/ProtectedRoute';
 import { LoginPage } from '@/features/auth/components/LoginPage';
 import { HomePage } from '@/features/home/components/HomePage';
 import { ProfilePage } from '@/features/profile';
+import { RoundPage } from '@/features/rounds';
 import { PlaceholderPage } from '@/shared/components/PlaceholderPage';
 
 export const router = createBrowserRouter([
@@ -14,6 +15,10 @@ export const router = createBrowserRouter([
   {
     element: <ProtectedRoute />,
     children: [
+      {
+        path: '/round/:roundId',
+        element: <RoundPage />,
+      },
       {
         path: '/',
         element: <AppLayout />,
