@@ -13,5 +13,5 @@
     "noUnusedParameters": true,
     "types": ["node"]
   },
-  "include": ["server/**/*", "api/**/*", "drizzle.config.ts"]
+  "include": ["server/**/*", "drizzle.config.ts"]
 }
