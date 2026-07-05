@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
-import { authRoutes } from './routes/auth';
-import { ApiError, errorResponse } from './lib/errors';
+import { authRoutes } from './routes/auth.js';
+import { ApiError, errorResponse } from './lib/errors.js';
 
 export function createApp() {
   const app = new Hono().basePath('/api/v1');
