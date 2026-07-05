@@ -1,4 +1,5 @@
 import { SubjectCard } from '@/shared/components/ui/SubjectCard';
+import { useSession } from '@/features/auth/hooks/useAuth';
 
 const subjects = [
   { code: 'math', name: 'Matemáticas', colorClass: 'border-subject-math' },
@@ -9,10 +10,13 @@ const subjects = [
 ] as const;
 
 export function HomePage() {
+  const sessionQuery = useSession();
+  const displayName = sessionQuery.data?.user.displayName ?? 'estudiante';
+
   return (
     <div className="space-y-8">
       <header className="space-y-2">
-        <p className="text-lg text-text-muted">¡Hola!</p>
+        <p className="text-lg text-text-muted">¡Hola, {displayName}!</p>
         <h1 className="text-3xl font-extrabold text-text-primary">¿Qué quieres practicar hoy?</h1>
         <p className="text-lg text-text-muted">Elige una materia para empezar una ronda de 20 ejercicios.</p>
       </header>
