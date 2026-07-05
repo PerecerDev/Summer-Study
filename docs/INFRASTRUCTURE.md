@@ -31,8 +31,8 @@ npm run db:seed
 | ----- | ----- |
 | Project | `summer-study` |
 | Team | `alexs-projects-90662fbd` |
-| Framework | Vite |
-| Output | `dist` |
+| Production URL | https://summer-study-ebon.vercel.app |
+| Build | `@hono/vite-build/vercel` → `.vercel/output` (Build Output API) |
 
 **Environment variables (Dashboard → Settings → Environment Variables):**
 
@@ -40,12 +40,14 @@ npm run db:seed
 | -------- | -------- | ----- |
 | `DATABASE_URL` | Yes | Neon pooled connection string |
 | `SESSION_SECRET` | Yes | Random 32+ byte hex string |
+| `NODEJS_HELPERS` | Yes | Set to `0` (required for Hono on Node.js serverless) |
 | `LLM_MODEL` | Yes | e.g. `gpt-4o-mini` |
 | `LLM_API_KEY` | Later | When AI generation ships |
 
 **Deploy:**
 
 ```bash
+npm run build   # client + API bundle to .vercel/output
 npx vercel deploy --prod
 ```
 

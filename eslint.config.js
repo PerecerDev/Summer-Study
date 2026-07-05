@@ -30,7 +30,7 @@ export default tseslint.config(
   },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommendedTypeChecked],
-    files: ['server/**/*.ts', 'api/**/*.ts'],
+    files: ['server/**/*.ts', 'drizzle.config.ts'],
     languageOptions: {
       ecmaVersion: 2022,
       globals: globals.node,
