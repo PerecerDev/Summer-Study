@@ -1,4 +1,4 @@
-import { and, asc, count, eq } from 'drizzle-orm';
+import { and, asc, count, desc, eq, inArray } from 'drizzle-orm';
 import { getDb } from '../db/index.js';
 import { exerciseAttempts, exercises, rounds } from '../db/schema.js';
 import type { GeneratedExercise } from '../schemas/rounds.js';
@@ -18,6 +18,9 @@ export interface ExerciseDto {
   difficulty: string;
   answered?: boolean;
   isCorrect?: boolean;
+  userAnswer?: string | string[] | null;
+  correctAnswer?: string | string[];
+  skipped?: boolean;
 }
 
 export interface RoundDto {
@@ -51,6 +54,7 @@ function toRoundDto(row: typeof rounds.$inferSelect): RoundDto {
 function toExerciseDto(
   row: typeof exercises.$inferSelect,
   attempt?: typeof exerciseAttempts.$inferSelect,
+  includeAnswers = false,
 ): ExerciseDto {
   return {
     id: row.id,
@@ -64,6 +68,9 @@ function toExerciseDto(
     difficulty: row.difficulty,
     answered: attempt !== undefined,
     isCorrect: attempt?.isCorrect,
+    userAnswer: attempt?.userAnswer ?? undefined,
+    skipped: attempt?.skipped,
+    ...(includeAnswers ? { correctAnswer: row.correctAnswer } : {}),
   };
 }
 
@@ -204,14 +211,50 @@ export async function getRoundDetail(userId: string, roundId: string) {
 
   return {
     round: toRoundDto(round),
-    exercises: exerciseRows.map((row) => toExerciseDto(row, attemptByExercise.get(row.id))),
+    exercises: exerciseRows.map((row) =>
+      toExerciseDto(row, attemptByExercise.get(row.id), round.status !== 'in_progress'),
+    ),
     attempts: attemptRows.map((a) => ({
       id: a.id,
       exerciseId: a.exerciseId,
       isCorrect: a.isCorrect,
       skipped: a.skipped,
+      userAnswer: a.userAnswer,
       answeredAt: a.answeredAt.toISOString(),
     })),
+  };
+}
+
+export async function listRoundHistory(
+  userId: string,
+  options: { subjectCode?: string; limit: number; offset: number },
+) {
+  const db = getDb();
+
+  const conditions = [
+    eq(rounds.userId, userId),
+    inArray(rounds.status, ['completed', 'abandoned']),
+  ];
+
+  if (options.subjectCode) {
+    conditions.push(eq(rounds.subjectCode, options.subjectCode));
+  }
+
+  const where = and(...conditions);
+
+  const [{ total }] = await db.select({ total: count() }).from(rounds).where(where);
+
+  const rows = await db
+    .select()
+    .from(rounds)
+    .where(where)
+    .orderBy(desc(rounds.completedAt), desc(rounds.startedAt))
+    .limit(options.limit)
+    .offset(options.offset);
+
+  return {
+    rounds: rows.map(toRoundDto),
+    total: Number(total),
   };
 }
 

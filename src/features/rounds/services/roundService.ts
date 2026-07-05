@@ -3,6 +3,8 @@ import type {
   ActiveRoundResponse,
   CompleteRoundResponse,
   GenerateRoundResponse,
+  HistoryRoundsResponse,
+  RoundDetailResponse,
   SubjectCode,
   SubmitAttemptResponse,
 } from '@/shared/types/api/rounds';
@@ -43,4 +45,22 @@ export function abandonRound(roundId: string): Promise<{ status: string }> {
   return apiFetch<{ status: string }>(`/rounds/${roundId}/abandon`, {
     method: 'POST',
   });
+}
+
+export function getRoundDetail(roundId: string): Promise<RoundDetailResponse> {
+  return apiFetch<RoundDetailResponse>(`/rounds/${roundId}`);
+}
+
+export function getRoundHistory(params?: {
+  subjectCode?: SubjectCode;
+  limit?: number;
+  offset?: number;
+}): Promise<HistoryRoundsResponse> {
+  const search = new URLSearchParams();
+  if (params?.subjectCode) search.set('subjectCode', params.subjectCode);
+  if (params?.limit !== undefined) search.set('limit', String(params.limit));
+  if (params?.offset !== undefined) search.set('offset', String(params.offset));
+  const query = search.toString();
+
+  return apiFetch<HistoryRoundsResponse>(`/history/rounds${query ? `?${query}` : ''}`);
 }

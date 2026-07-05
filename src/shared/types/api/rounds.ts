@@ -18,6 +18,9 @@ export interface ExerciseDto {
   difficulty: string;
   answered?: boolean;
   isCorrect?: boolean;
+  userAnswer?: string | string[] | null;
+  correctAnswer?: string | string[];
+  skipped?: boolean;
 }
 
 export interface RoundDto {
@@ -57,4 +60,22 @@ export interface CompleteRoundResponse {
 export interface ActiveRoundResponse {
   round: RoundDto;
   exercises: ExerciseDto[];
+}
+
+export interface RoundDetailResponse {
+  round: RoundDto;
+  exercises: ExerciseDto[];
+  attempts: Array<{
+    id: string;
+    exerciseId: string;
+    isCorrect: boolean;
+    skipped: boolean;
+    userAnswer?: string | string[] | null;
+    answeredAt: string;
+  }>;
+}
+
+export interface HistoryRoundsResponse {
+  rounds: RoundDto[];
+  total: number;
 }
