@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
+import { RoundLayout } from '@/app/layouts/RoundLayout';
 import { Button } from '@/shared/components/ui/Button';
+import { ErrorPage, LoadingPage } from '@/shared/components/ui/PageState';
 import { queryKeys } from '@/shared/lib/query-keys';
 import {
   formatDuration,
@@ -49,27 +51,49 @@ export function ResultsPage() {
     completeState?.completeResult?.rewards.find((reward) => reward.type === 'star')?.amount ?? 0;
 
   if (detailQuery.isLoading) {
-    return <p className="p-6 text-lg text-text-muted">Cargando resultados…</p>;
+    return (
+      <RoundLayout>
+        <LoadingPage message="Cargando resultados…" />
+      </RoundLayout>
+    );
+  }
+
+  if (detailQuery.isError) {
+    return (
+      <RoundLayout>
+        <div className="p-6">
+          <ErrorPage
+            message="No se pudieron cargar los resultados."
+            onRetry={() => {
+              void detailQuery.refetch();
+            }}
+          />
+        </div>
+      </RoundLayout>
+    );
   }
 
   if (!round || round.status !== 'completed') {
     return (
-      <div className="space-y-4 p-6">
-        <p className="text-lg text-text-muted">No hay resultados para esta ronda.</p>
-        <Button
-          type="button"
-          onClick={() => {
-            navigate('/');
-          }}
-        >
-          Volver al inicio
-        </Button>
-      </div>
+      <RoundLayout>
+        <div className="space-y-4 p-6">
+          <ErrorPage message="No hay resultados para esta ronda." />
+          <Button
+            type="button"
+            onClick={() => {
+              navigate('/');
+            }}
+          >
+            Volver al inicio
+          </Button>
+        </div>
+      </RoundLayout>
     );
   }
 
   return (
-    <div className="mx-auto flex min-h-screen max-w-xl flex-col gap-8 p-6">
+    <RoundLayout>
+    <div className="flex min-h-screen flex-col gap-8 p-6">
       <header className="space-y-3 text-center">
         <p className="text-2xl font-extrabold text-primary">¡Ronda completada! 🎉</p>
         <p className="text-lg text-text-muted">
@@ -147,5 +171,6 @@ export function ResultsPage() {
         </Link>
       </div>
     </div>
+    </RoundLayout>
   );
 }

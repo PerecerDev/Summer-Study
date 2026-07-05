@@ -4,6 +4,8 @@ import { ParentGateModal } from '@/features/auth/components/ParentGateModal';
 import { useLogout, useSession } from '@/features/auth/hooks/useAuth';
 import { useParentAuthStore } from '@/features/auth/stores/parentAuthStore';
 import { Button } from '@/shared/components/ui/Button';
+import { ErrorPage, LoadingPage } from '@/shared/components/ui/PageState';
+import { formatGradeLevel } from '@/shared/lib/grade';
 
 export function ProfilePage() {
   const navigate = useNavigate();
@@ -14,6 +16,21 @@ export function ProfilePage() {
   const [isParentGateOpen, setIsParentGateOpen] = useState(false);
 
   const user = sessionQuery.data?.user;
+
+  if (sessionQuery.isLoading) {
+    return <LoadingPage message="Cargando perfil…" />;
+  }
+
+  if (sessionQuery.isError || !user) {
+    return (
+      <ErrorPage
+        message="No se pudo cargar tu perfil."
+        onRetry={() => {
+          void sessionQuery.refetch();
+        }}
+      />
+    );
+  }
 
   const handleLogout = () => {
     logoutMutation.mutate(undefined, {
@@ -28,12 +45,15 @@ export function ProfilePage() {
     <section className="space-y-8 py-4">
       <header className="space-y-2">
         <h1 className="text-3xl font-extrabold text-text-primary">Perfil</h1>
-        <p className="text-lg text-text-muted">{user?.displayName ?? 'Estudiante'}</p>
+        <p className="text-lg text-text-muted">{user.displayName}</p>
       </header>
 
-      <div className="rounded-2xl bg-surface p-6 shadow-sm">
+      <div className="space-y-3 rounded-2xl bg-surface p-6 shadow-sm">
         <p className="text-lg text-text-primary">
-          Usuario: <span className="font-semibold">{user?.username}</span>
+          Usuario: <span className="font-semibold">{user.username}</span>
+        </p>
+        <p className="text-lg text-text-primary">
+          Curso: <span className="font-semibold">{formatGradeLevel(user.gradeLevel)}</span>
         </p>
       </div>
 

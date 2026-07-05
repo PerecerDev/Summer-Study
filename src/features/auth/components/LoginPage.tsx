@@ -1,4 +1,5 @@
 import { Navigate } from 'react-router-dom';
+import { SplashScreen } from '@/app/components/SplashScreen';
 import { LoginForm } from './LoginForm';
 import { useSession } from '../hooks/useAuth';
 
@@ -6,11 +7,7 @@ export function LoginPage() {
   const sessionQuery = useSession();
 
   if (sessionQuery.isLoading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center px-4">
-        <p className="text-lg text-text-muted">Cargando…</p>
-      </div>
-    );
+    return <SplashScreen message="Comprobando sesión…" />;
   }
 
   if (sessionQuery.data?.isAuthenticated) {

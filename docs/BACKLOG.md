@@ -82,11 +82,11 @@ Priority: **P0** = MVP blocker | **P1** = next slice | **P2** = future
 
 | ID | Story | Priority | Status |
 | -- | ----- | -------- | ------ |
-| E6-01 | AppLayout with bottom tabs | P0 | Todo |
-| E6-02 | RoundLayout (immersive) | P0 | Todo |
-| E6-03 | Profile page + logout | P0 | Todo |
-| E6-04 | Splash / boot screen | P0 | Todo |
-| E6-05 | Error boundary + error states | P0 | Todo |
+| E6-01 | AppLayout with bottom tabs | P0 | Done |
+| E6-02 | RoundLayout (immersive) | P0 | Done |
+| E6-03 | Profile page + logout | P0 | Done |
+| E6-04 | Splash / boot screen | P0 | Done |
+| E6-05 | Error boundary + error states | P0 | Done |
 
 ---
 

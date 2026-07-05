@@ -1,4 +1,5 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
+import { RouteErrorPage } from '@/app/components/RouteErrorPage';
 import { AppLayout } from '@/app/layouts/AppLayout';
 import { ProtectedRoute } from '@/app/router/ProtectedRoute';
 import { LoginPage } from '@/features/auth/components/LoginPage';
@@ -10,52 +11,57 @@ import { PlaceholderPage } from '@/shared/components/PlaceholderPage';
 
 export const router = createBrowserRouter([
   {
-    path: '/login',
-    element: <LoginPage />,
-  },
-  {
-    element: <ProtectedRoute />,
+    errorElement: <RouteErrorPage />,
     children: [
       {
-        path: '/round/:roundId',
-        element: <RoundPage />,
+        path: '/login',
+        element: <LoginPage />,
       },
       {
-        path: '/round/:roundId/results',
-        element: <ResultsPage />,
-      },
-      {
-        path: '/',
-        element: <AppLayout />,
+        element: <ProtectedRoute />,
         children: [
-          { index: true, element: <HomePage /> },
-          { path: 'history', element: <HistoryPage /> },
-          { path: 'history/:roundId', element: <RoundDetailPage /> },
           {
-            path: 'progress',
-            element: (
-              <PlaceholderPage
-                title="Progreso"
-                description="Estadísticas de avance — pendiente (Fase 2)."
-              />
-            ),
+            path: '/round/:roundId',
+            element: <RoundPage />,
           },
           {
-            path: 'achievements',
-            element: (
-              <PlaceholderPage
-                title="Logros"
-                description="Insignias y logros — pendiente (Fase 2)."
-              />
-            ),
+            path: '/round/:roundId/results',
+            element: <ResultsPage />,
           },
           {
-            path: 'profile',
-            element: <ProfilePage />,
+            path: '/',
+            element: <AppLayout />,
+            children: [
+              { index: true, element: <HomePage /> },
+              { path: 'history', element: <HistoryPage /> },
+              { path: 'history/:roundId', element: <RoundDetailPage /> },
+              {
+                path: 'progress',
+                element: (
+                  <PlaceholderPage
+                    title="Progreso"
+                    description="Estadísticas de avance — pendiente (Fase 2)."
+                  />
+                ),
+              },
+              {
+                path: 'achievements',
+                element: (
+                  <PlaceholderPage
+                    title="Logros"
+                    description="Insignias y logros — pendiente (Fase 2)."
+                  />
+                ),
+              },
+              {
+                path: 'profile',
+                element: <ProfilePage />,
+              },
+            ],
           },
         ],
       },
+      { path: '*', element: <Navigate to="/" replace /> },
     ],
   },
-  { path: '*', element: <Navigate to="/" replace /> },
 ]);
