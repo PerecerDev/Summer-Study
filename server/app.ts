@@ -2,6 +2,7 @@ import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { authRoutes } from './routes/auth.js';
 import { historyRoutes } from './routes/history.js';
+import { isLlmConfigured } from './services/llmClient.js';
 import { roundRoutes } from './routes/rounds.js';
 import { subjectRoutes } from './routes/subjects.js';
 import { ApiError, errorResponse } from './lib/errors.js';
@@ -33,6 +34,7 @@ export function createApp() {
     c.json({
       status: 'ok',
       db: process.env.DATABASE_URL ? 'configured' : 'missing',
+      llm: process.env.MOCK_LLM === 'true' ? 'mock' : isLlmConfigured() ? 'groq' : 'missing',
       version: '0.1.0',
     }),
   );

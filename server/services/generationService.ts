@@ -6,6 +6,7 @@ import {
   type GeneratedExercise,
 } from '../schemas/rounds.js';
 import { generateMockMathExercises } from './mockExerciseGenerator.js';
+import { chatCompletionJson, isLlmConfigured, parseLlmJson } from './llmClient.js';
 import { ApiError } from '../lib/errors.js';
 
 const PROMPT_VERSION = '1.0.0';
@@ -13,63 +14,46 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const PROMPTS_DIR = resolve(__dirname, '../prompts');
 
 export function shouldUseMockLlm(): boolean {
-  return process.env.MOCK_LLM === 'true' || !process.env.LLM_API_KEY;
+  return process.env.MOCK_LLM === 'true' || !isLlmConfigured();
 }
 
 async function loadPrompt(relativePath: string): Promise<string> {
   return readFile(resolve(PROMPTS_DIR, relativePath), 'utf-8');
 }
 
-function buildUserPrompt(subjectCode: string, exerciseCount: number): string {
+function buildGenerationPrompt(subjectCode: string, exerciseCount: number): string {
   if (subjectCode !== 'math') {
     throw new ApiError('SUBJECT_UNAVAILABLE', 400, 'Esta materia aún no está disponible');
   }
 
-  return `Genera ${exerciseCount} ejercicios de matemáticas. promptVersion: ${PROMPT_VERSION}`;
-}
+  const lastIndex = exerciseCount - 1;
 
-async function callOpenAi(systemPrompt: string, userPrompt: string): Promise<string> {
-  const apiKey = process.env.LLM_API_KEY;
-  const model = process.env.LLM_MODEL ?? 'gpt-4o-mini';
-  const baseUrl = process.env.LLM_BASE_URL ?? 'https://api.openai.com/v1';
+  return `Genera exactamente ${exerciseCount} ejercicios de matemáticas (4º Primaria, España).
 
-  if (!apiKey) {
-    throw new ApiError('GENERATION_FAILED', 503, 'Generación no disponible');
-  }
+Requisitos:
+- orderIndex de 0 a ${lastIndex}, sin saltos ni duplicados
+- Tipos: multiple_choice, true_false, fill_blank, short_answer
+- topicTag: numeros_operaciones | fracciones_basicas | geometria_plana | medidas | problemas_aritmeticos
+- difficulty: easy | medium | hard (mezcla: 40% easy, 40% medium, 20% hard)
+- Preguntas distintas entre sí
+- promptVersion: "${PROMPT_VERSION}"
 
-  const response = await fetch(`${baseUrl}/chat/completions`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      model,
-      temperature: 0.7,
-      response_format: { type: 'json_object' },
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt },
-      ],
-    }),
-    signal: AbortSignal.timeout(60_000),
-  });
-
-  if (!response.ok) {
-    throw new ApiError('GENERATION_FAILED', 503, 'No se pudieron generar los ejercicios');
-  }
-
-  const data = (await response.json()) as {
-    choices?: Array<{ message?: { content?: string } }>;
-  };
-
-  const content = data.choices?.[0]?.message?.content;
-
-  if (!content) {
-    throw new ApiError('GENERATION_FAILED', 503, 'Respuesta vacía del modelo');
-  }
-
-  return content;
+Responde SOLO con JSON válido:
+{
+  "exercises": [
+    {
+      "orderIndex": 0,
+      "type": "multiple_choice",
+      "question": "¿Cuánto es 12 + 8?",
+      "options": ["18", "20", "22", "19"],
+      "correctAnswer": "20",
+      "explanation": "12 + 8 = 20",
+      "topicTag": "numeros_operaciones",
+      "difficulty": "easy"
+    }
+  ],
+  "promptVersion": "${PROMPT_VERSION}"
+}`;
 }
 
 function deduplicateQuestions(exercises: GeneratedExercise[]): boolean {
@@ -91,14 +75,19 @@ async function generateWithRetries(
 ): Promise<{ exercises: GeneratedExercise[]; promptVersion: string }> {
   const systemPrompt = await loadPrompt('versions/v1.0.0/system.md');
   const subjectPrompt = await loadPrompt(`versions/v1.0.0/${subjectCode}.md`);
-  const userPrompt = `${subjectPrompt}\n\n${buildUserPrompt(subjectCode, exerciseCount)}`;
+  const userPrompt = `${subjectPrompt}\n\n${buildGenerationPrompt(subjectCode, exerciseCount)}`;
 
   let lastError: unknown;
 
   for (let attempt = 0; attempt < 3; attempt += 1) {
     try {
-      const raw = await callOpenAi(systemPrompt, userPrompt);
-      const parsed = generateRoundResponseSchema.parse(JSON.parse(raw));
+      const raw = await chatCompletionJson(
+        systemPrompt,
+        attempt > 0
+          ? `${userPrompt}\n\nIMPORTANTE: Responde únicamente con JSON válido. Genera exactamente ${exerciseCount} ejercicios.`
+          : userPrompt,
+      );
+      const parsed = generateRoundResponseSchema.parse(parseLlmJson(raw));
 
       if (parsed.exercises.length !== exerciseCount) {
         throw new Error('Invalid exercise count');
@@ -115,7 +104,11 @@ async function generateWithRetries(
   }
 
   console.error('Generation failed after retries:', lastError);
-  throw new ApiError('GENERATION_FAILED', 503, 'No se pudieron generar los ejercicios. Inténtalo más tarde.');
+  throw new ApiError(
+    'GENERATION_FAILED',
+    503,
+    'No se pudieron generar los ejercicios. Inténtalo más tarde.',
+  );
 }
 
 export async function generateExercises(
@@ -127,6 +120,14 @@ export async function generateExercises(
   }
 
   if (shouldUseMockLlm()) {
+    if (process.env.NODE_ENV === 'production' && !isLlmConfigured()) {
+      throw new ApiError(
+        'GENERATION_FAILED',
+        503,
+        'Generación no disponible. Configura GROQ_API_KEY en el servidor.',
+      );
+    }
+
     return {
       exercises: generateMockMathExercises(exerciseCount),
       promptVersion: PROMPT_VERSION,
