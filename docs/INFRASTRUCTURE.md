@@ -73,7 +73,7 @@ Migrations tracked in `schema_migrations` (`0000_init.sql`, `0001_rounds.sql`).
 | `LLM_MODEL` | No | `llama-3.3-70b-versatile` |
 | `LLM_BASE_URL` | No | `https://api.groq.com/openai/v1` |
 
-**Deploy:** automatic on push to `main` (GitHub connected).
+**Deploy:** automatic on push to `main` only (production branch). Pushes to `develop` are disabled in `vercel.json`.
 
 **Git:** https://github.com/PerecerDev/Summer-Study
 
