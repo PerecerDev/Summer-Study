@@ -124,6 +124,7 @@ function deduplicateQuestions(exercises: GeneratedExercise[]): boolean {
 }
 
 const GENERATION_BATCH_SIZE = 10;
+const GENERATION_BATCH_PAUSE_MS = 22_000;
 const MAX_GENERATION_ATTEMPTS = 4;
 
 function remapOrderIndex(
@@ -230,7 +231,7 @@ async function generateWithRetries(
     orderOffset += batchSize;
 
     if (orderOffset < exerciseCount) {
-      await sleep(1500);
+      await sleep(GENERATION_BATCH_PAUSE_MS);
     }
   }
 
