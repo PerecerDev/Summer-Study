@@ -1,13 +1,14 @@
 import { Hono } from 'hono';
 import { deleteCookie, getCookie, setCookie } from 'hono/cookie';
-import { loginSchema, parentPasswordSchema } from '../schemas/auth';
+import { z } from 'zod';
+import { loginSchema, parentPasswordSchema } from '../schemas/auth.js';
 import {
   getSessionUser,
   login,
   logout,
   verifyParentPassword,
-} from '../services/authService';
-import { ApiError, SESSION_COOKIE, SESSION_TTL_MS } from '../lib/errors';
+} from '../services/authService.js';
+import { ApiError, SESSION_COOKIE, SESSION_TTL_MS } from '../lib/errors.js';
 
 const isProduction = process.env.NODE_ENV === 'production';
 
@@ -25,7 +26,7 @@ function clearSessionCookie(c: Parameters<typeof deleteCookie>[0]) {
   deleteCookie(c, SESSION_COOKIE, { path: '/' });
 }
 
-function parseBody<T>(schema: { safeParse: (data: unknown) => { success: true; data: T } | { success: false; error: { flatten: () => unknown } } }, body: unknown): T {
+function parseBody<T>(schema: z.ZodType<T>, body: unknown): T {
   const parsed = schema.safeParse(body);
 
   if (!parsed.success) {
