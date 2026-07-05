@@ -1,13 +1,13 @@
 import { eq, lt } from 'drizzle-orm';
-import { getDb } from '../db';
-import { parentTokens, parents, sessions, users } from '../db/schema';
+import { getDb } from '../db/index.js';
+import { parentTokens, parents, sessions, users } from '../db/schema.js';
 import {
   generateToken,
   hashPassword,
   hashToken,
   verifyPassword,
-} from '../lib/crypto';
-import { ApiError, PARENT_TOKEN_TTL_MS, SESSION_TTL_MS } from '../lib/errors';
+} from '../lib/crypto.js';
+import { ApiError, PARENT_TOKEN_TTL_MS, SESSION_TTL_MS } from '../lib/errors.js';
 
 export interface UserDto {
   id: string;

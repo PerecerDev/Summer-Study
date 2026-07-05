@@ -1,8 +1,8 @@
 import { config } from 'dotenv';
 import { eq } from 'drizzle-orm';
-import { closeDb, getDb } from './index';
-import { parents, users } from './schema';
-import { hashPassword } from '../services/authService';
+import { closeDb, getDb } from './index.js';
+import { parents, users } from './schema.js';
+import { hashPassword } from '../services/authService.js';
 
 config();
 
