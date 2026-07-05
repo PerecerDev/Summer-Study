@@ -10,24 +10,24 @@ const tabs = [
 
 export function AppLayout() {
   return (
-    <div className="mx-auto flex min-h-screen max-w-content flex-col px-4 pb-24 pt-6">
-      <main className="flex-1">
+    <div className="mx-auto flex min-h-screen max-w-content flex-col bg-background px-4 pb-28 pt-6">
+      <main className="flex-1" id="main-content">
         <Outlet />
       </main>
 
       <nav
-        className="fixed bottom-0 left-0 right-0 border-t border-black/5 bg-surface"
+        className="fixed inset-x-0 bottom-0 z-40 border-t border-black/5 bg-surface/95 backdrop-blur-sm"
         aria-label="Navegación principal"
       >
         <ul className="mx-auto flex max-w-content justify-between gap-1 px-2 py-2">
           {tabs.map((tab) => (
-            <li key={tab.to} className="flex-1">
+            <li key={tab.to} className="min-w-0 flex-1">
               <NavLink
                 to={tab.to}
                 end={tab.end}
                 className={({ isActive }) =>
                   [
-                    'flex min-h-touch-lg flex-col items-center justify-center rounded-xl px-1 text-sm font-bold transition-colors',
+                    'flex min-h-touch-lg flex-col items-center justify-center rounded-xl px-1 text-center text-xs font-bold leading-tight transition-colors sm:text-sm',
                     isActive
                       ? 'bg-primary/10 text-primary'
                       : 'text-text-muted hover:bg-black/5',

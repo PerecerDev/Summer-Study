@@ -34,7 +34,7 @@ export function FeedbackPanel({
         </p>
       )}
       {explanation && <p className="text-lg text-text-muted">{explanation}</p>}
-      <Button type="button" onClick={onContinue} className="w-full">
+      <Button type="button" onClick={onContinue} className="w-full" data-testid="exercise-continue">
         Siguiente ejercicio
       </Button>
     </div>
@@ -135,6 +135,7 @@ export function ExerciseView({
         onClick={onSubmit}
         disabled={!canSubmit || isSubmitting}
         className="w-full"
+        data-testid="exercise-submit"
       >
         {isSubmitting ? 'Comprobando…' : 'Comprobar'}
       </Button>

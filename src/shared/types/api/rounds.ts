@@ -1,3 +1,5 @@
+import type { LevelUpDto, UnlockedBadgeDto } from './gamification';
+
 export type SubjectCode = 'math' | 'language' | 'english' | 'valencian' | 'medi';
 
 export type ExerciseType =
@@ -55,6 +57,10 @@ export interface CompleteRoundResponse {
   scorePercent: number;
   durationSeconds: number;
   rewards: Array<{ type: string; amount: number }>;
+  xpGained: number;
+  starsEarned: number;
+  levelUp?: LevelUpDto | null;
+  newBadges?: UnlockedBadgeDto[];
 }
 
 export interface ActiveRoundResponse {

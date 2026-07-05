@@ -1,5 +1,8 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { RouterProvider } from 'react-router-dom';
+import { AppBoot } from '@/app/components/AppBoot';
+import { AppErrorBoundary } from '@/app/components/AppErrorBoundary';
+import { SkipLink } from '@/app/components/SkipLink';
 import { router } from '@/app/router/routes';
 
 const queryClient = new QueryClient({
@@ -13,8 +16,13 @@ const queryClient = new QueryClient({
 
 export function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <RouterProvider router={router} />
-    </QueryClientProvider>
+    <AppErrorBoundary>
+      <SkipLink />
+      <QueryClientProvider client={queryClient}>
+        <AppBoot>
+          <RouterProvider router={router} />
+        </AppBoot>
+      </QueryClientProvider>
+    </AppErrorBoundary>
   );
 }

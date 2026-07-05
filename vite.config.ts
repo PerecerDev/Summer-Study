@@ -15,6 +15,14 @@ export default defineConfig(({ mode }) => {
       build: {
         outDir: '.vercel/output/static',
         emptyOutDir: true,
+        rollupOptions: {
+          output: {
+            manualChunks: {
+              vendor: ['react', 'react-dom', 'react-router-dom'],
+              query: ['@tanstack/react-query'],
+            },
+          },
+        },
       },
     };
   }
@@ -45,10 +53,10 @@ export default defineConfig(({ mode }) => {
       },
     },
     server: {
-      port: 5173,
+      port: Number(process.env.VITE_PORT ?? 5173),
       proxy: {
         '/api': {
-          target: 'http://localhost:3001',
+          target: `http://localhost:${process.env.API_PORT ?? 3001}`,
           changeOrigin: true,
         },
       },

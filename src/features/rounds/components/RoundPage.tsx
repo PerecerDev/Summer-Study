@@ -1,7 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate, useParams } from 'react-router-dom';
+import { RoundLayout } from '@/app/layouts/RoundLayout';
 import { Button } from '@/shared/components/ui/Button';
+import { ErrorPage, LoadingPage } from '@/shared/components/ui/PageState';
+import { SUBJECT_LABELS } from '@/shared/lib/subjects';
 import { queryKeys } from '@/shared/lib/query-keys';
 import type { SubmitAttemptResponse } from '@/shared/types/api/rounds';
 import {
@@ -71,6 +74,8 @@ export function RoundPage() {
     onSuccess: (data) => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.rounds.active });
       void queryClient.invalidateQueries({ queryKey: queryKeys.history.list() });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.progress.summary });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.achievements.list });
       if (roundId) {
         navigate(`/round/${roundId}/results`, {
           state: { completeResult: data },
@@ -114,53 +119,80 @@ export function RoundPage() {
     void completeMutation.mutateAsync();
   };
 
+  const subjectLabel = round ? SUBJECT_LABELS[round.subjectCode] : 'Ronda';
+
   if (roundQuery.isLoading) {
-    return <p className="p-6 text-lg text-text-muted">Cargando ronda…</p>;
+    return (
+      <RoundLayout>
+        <LoadingPage message="Cargando ronda…" />
+      </RoundLayout>
+    );
+  }
+
+  if (roundQuery.isError) {
+    return (
+      <RoundLayout>
+        <div className="p-6">
+          <ErrorPage
+            message="No se pudo cargar la ronda."
+            onRetry={() => {
+              void roundQuery.refetch();
+            }}
+          />
+        </div>
+      </RoundLayout>
+    );
   }
 
   if (!round || round.id !== roundId) {
     return (
-      <div className="space-y-4 p-6">
-        <p className="text-lg text-text-muted">No se encontró la ronda.</p>
-        <Button
-          type="button"
-          onClick={() => {
-            navigate('/');
-          }}
-        >
-          Volver al inicio
-        </Button>
-      </div>
+      <RoundLayout>
+        <div className="space-y-4 p-6">
+          <ErrorPage message="No se encontró la ronda." />
+          <Button
+            type="button"
+            onClick={() => {
+              navigate('/');
+            }}
+          >
+            Volver al inicio
+          </Button>
+        </div>
+      </RoundLayout>
     );
   }
 
   const allAnswered = answeredCount >= round.exerciseCount;
 
   return (
-    <div className="mx-auto flex min-h-screen max-w-xl flex-col gap-6 p-6">
-      <header className="flex items-center justify-between gap-4">
-        <button
-          type="button"
-          className="min-h-touch rounded-xl px-3 text-lg font-semibold text-primary"
-          onClick={() => {
-            setShowDefer(true);
-          }}
-        >
-          ← Salir
-        </button>
-        <span className="text-sm font-semibold uppercase tracking-wide text-text-muted">
-          Matemáticas
-        </span>
-        <button
-          type="button"
-          className="min-h-touch rounded-xl px-3 text-lg font-semibold text-primary"
-          onClick={() => {
-            setShowSkip(true);
-          }}
-        >
-          Saltar
-        </button>
-      </header>
+    <RoundLayout
+      header={
+        <header className="flex items-center justify-between gap-4 px-6 pt-6">
+          <button
+            type="button"
+            className="min-h-touch rounded-xl px-3 text-lg font-semibold text-primary"
+            onClick={() => {
+              setShowDefer(true);
+            }}
+          >
+            ← Salir
+          </button>
+          <span className="text-sm font-semibold uppercase tracking-wide text-text-muted">
+            {subjectLabel}
+          </span>
+          <button
+            type="button"
+            className="min-h-touch rounded-xl px-3 text-lg font-semibold text-primary"
+            onClick={() => {
+              setShowSkip(true);
+            }}
+          >
+            Saltar
+          </button>
+        </header>
+      }
+    >
+      <div className="flex flex-col gap-6 p-6">
 
       <ProgressBar current={answeredCount} total={round.exerciseCount} />
 
@@ -170,6 +202,7 @@ export function RoundPage() {
           <Button
             type="button"
             className="w-full"
+            data-testid="round-complete"
             onClick={() => {
               completeMutation.mutate();
             }}
@@ -222,6 +255,7 @@ export function RoundPage() {
           abandonMutation.mutate();
         }}
       />
-    </div>
+      </div>
+    </RoundLayout>
   );
 }

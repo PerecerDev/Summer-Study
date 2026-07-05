@@ -25,6 +25,8 @@ async function migrate() {
     )
   `;
 
+  await sql`CREATE EXTENSION IF NOT EXISTS "pgcrypto"`;
+
   const migrationsDir = join(__dirname, 'migrations');
   const files = readdirSync(migrationsDir)
     .filter((file) => file.endsWith('.sql'))

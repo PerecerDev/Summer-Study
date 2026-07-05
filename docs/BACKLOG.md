@@ -82,11 +82,11 @@ Priority: **P0** = MVP blocker | **P1** = next slice | **P2** = future
 
 | ID | Story | Priority | Status |
 | -- | ----- | -------- | ------ |
-| E6-01 | AppLayout with bottom tabs | P0 | Todo |
-| E6-02 | RoundLayout (immersive) | P0 | Todo |
-| E6-03 | Profile page + logout | P0 | Todo |
-| E6-04 | Splash / boot screen | P0 | Todo |
-| E6-05 | Error boundary + error states | P0 | Todo |
+| E6-01 | AppLayout with bottom tabs | P0 | Done |
+| E6-02 | RoundLayout (immersive) | P0 | Done |
+| E6-03 | Profile page + logout | P0 | Done |
+| E6-04 | Splash / boot screen | P0 | Done |
+| E6-05 | Error boundary + error states | P0 | Done |
 
 ---
 
@@ -94,11 +94,11 @@ Priority: **P0** = MVP blocker | **P1** = next slice | **P2** = future
 
 | ID | Story | Priority | Status |
 | -- | ----- | -------- | ------ |
-| E7-01 | Reward calculation service | P1 | Backlog |
-| E7-02 | Stars on results screen | P1 | Backlog |
-| E7-03 | XP + level on profile | P1 | Backlog |
-| E7-04 | Streak tracking | P1 | Backlog |
-| E7-05 | Achievements page + badges | P1 | Backlog |
+| E7-01 | Reward calculation service | P1 | Done |
+| E7-02 | Stars on results screen | P1 | Done |
+| E7-03 | XP + level on profile | P1 | Done |
+| E7-04 | Streak tracking | P1 | Done |
+| E7-05 | Achievements page + badges | P1 | Done |
 
 ---
 
@@ -106,11 +106,11 @@ Priority: **P0** = MVP blocker | **P1** = next slice | **P2** = future
 
 | ID | Story | Priority | Status |
 | -- | ----- | -------- | ------ |
-| E8-01 | Prompt templates: Lengua | P1 | Backlog |
-| E8-02 | Prompt templates: Inglés | P1 | Backlog |
-| E8-03 | Prompt templates: Valenciano | P1 | Backlog |
-| E8-04 | Prompt templates: Medi | P1 | Backlog |
-| E8-05 | Parent review per subject | P1 | Backlog |
+| E8-01 | Prompt templates: Lengua | P1 | Done |
+| E8-02 | Prompt templates: Inglés | P1 | Done |
+| E8-03 | Prompt templates: Valenciano | P1 | Done |
+| E8-04 | Prompt templates: Medi | P1 | Done |
+| E8-05 | Parent review per subject | P1 | Done |
 
 ---
 
@@ -118,9 +118,9 @@ Priority: **P0** = MVP blocker | **P1** = next slice | **P2** = future
 
 | ID | Story | Priority | Status |
 | -- | ----- | -------- | ------ |
-| E9-01 | GET /parent/overview | P1 | Backlog |
-| E9-02 | Parent layout + overview page | P1 | Backlog |
-| E9-03 | Progress by subject charts | P1 | Backlog |
+| E9-01 | GET /parent/overview | P1 | Done |
+| E9-02 | Parent layout + overview page | P1 | Done |
+| E9-03 | Progress by subject charts | P1 | Done |
 
 ---
 
@@ -128,10 +128,10 @@ Priority: **P0** = MVP blocker | **P1** = next slice | **P2** = future
 
 | ID | Story | Priority | Status |
 | -- | ----- | -------- | ------ |
-| E10-01 | E2E: happy path Playwright | P0 | Todo |
-| E10-02 | Lighthouse CI | P1 | Backlog |
-| E10-03 | Accessibility audit (core screens) | P0 | Todo |
-| E10-04 | iPad Air 2 performance pass | P0 | Todo |
+| E10-01 | E2E: happy path Playwright | P0 | Done |
+| E10-02 | Lighthouse CI | P1 | Done |
+| E10-03 | Accessibility audit (core screens) | P0 | Done |
+| E10-04 | iPad Air 2 performance pass | P0 | Done |
 
 ---
 

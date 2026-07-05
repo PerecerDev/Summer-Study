@@ -30,57 +30,66 @@ async function seedSubjects() {
         name: subject.name,
         icon: subject.icon,
         sortOrder: subject.sortOrder,
-        isActive: subject.code === 'math',
+        isActive: true,
       });
     }
   }
+
+  await db.update(subjects).set({ isActive: true });
 }
 
-async function seed() {
+async function ensureUser(
+  username: string,
+  password: string,
+  displayName: string,
+  withParent?: string,
+) {
   const db = getDb();
 
-  await seedSubjects();
-
-  const studentUsername = process.env.SEED_STUDENT_USERNAME ?? 'estudiante';
-  const studentPassword = process.env.SEED_STUDENT_PASSWORD ?? '1234';
-  const studentDisplayName = process.env.SEED_STUDENT_DISPLAY_NAME ?? 'María';
-  const parentPassword = process.env.SEED_PARENT_PASSWORD ?? 'parent123';
-
-  const [existing] = await db
-    .select()
-    .from(users)
-    .where(eq(users.username, studentUsername))
-    .limit(1);
+  const [existing] = await db.select().from(users).where(eq(users.username, username)).limit(1);
 
   if (existing) {
-    console.log(`User "${studentUsername}" already exists — skipping user seed.`);
-    await closeDb();
+    console.log(`User "${username}" already exists — skipping.`);
     return;
   }
 
   const [user] = await db
     .insert(users)
     .values({
-      username: studentUsername,
-      passwordHash: await hashPassword(studentPassword),
-      displayName: studentDisplayName,
+      username,
+      passwordHash: await hashPassword(password),
+      displayName,
     })
     .returning();
 
   if (!user) {
-    throw new Error('Failed to create seed user');
+    throw new Error(`Failed to create user "${username}"`);
   }
 
-  await db.insert(parents).values({
-    userId: user.id,
-    passwordHash: await hashPassword(parentPassword),
-  });
+  if (withParent) {
+    await db.insert(parents).values({
+      userId: user.id,
+      passwordHash: await hashPassword(withParent),
+    });
+  }
 
-  console.log('Seed complete:');
-  console.log(`  Student username: ${studentUsername}`);
-  console.log(`  Student password: ${studentPassword}`);
-  console.log(`  Parent password:  ${parentPassword}`);
+  console.log(`Created user "${username}" (${displayName})`);
+}
 
+async function seed() {
+  await seedSubjects();
+
+  const studentUsername = process.env.SEED_STUDENT_USERNAME ?? 'estudiante';
+  const studentPassword = process.env.SEED_STUDENT_PASSWORD ?? '1234';
+  const studentDisplayName = process.env.SEED_STUDENT_DISPLAY_NAME ?? 'María';
+  const parentPassword = process.env.SEED_PARENT_PASSWORD ?? 'parent123';
+  const adminUsername = process.env.SEED_ADMIN_USERNAME ?? 'admin';
+  const adminPassword = process.env.SEED_ADMIN_PASSWORD ?? 'admin';
+
+  await ensureUser(studentUsername, studentPassword, studentDisplayName, parentPassword);
+  await ensureUser(adminUsername, adminPassword, 'Administrador');
+
+  console.log('Seed complete.');
   await closeDb();
 }
 
