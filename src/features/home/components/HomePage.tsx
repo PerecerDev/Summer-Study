@@ -108,7 +108,7 @@ export function HomePage() {
 
       {generateMutation.isPending && (
         <p className="rounded-xl bg-primary/10 p-4 text-lg text-text-primary" aria-live="polite">
-          Preparando ejercicios… Puede tardar hasta un minuto.
+          Preparando ejercicios…
         </p>
       )}
 

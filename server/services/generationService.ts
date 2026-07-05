@@ -12,6 +12,7 @@ import { chatCompletionJson, isLlmConfigured, parseLlmJson } from './llmClient.j
 import { ApiError } from '../lib/errors.js';
 
 const PROMPT_VERSION = '1.0.0';
+const MOCK_FALLBACK_PROMPT_VERSION = '1.0.0-mock-fallback';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 function getPromptsDir(): string {
@@ -29,6 +30,10 @@ function getPromptsDir(): string {
 
 export function shouldUseMockLlm(): boolean {
   return process.env.MOCK_LLM === 'true' || !isLlmConfigured();
+}
+
+function shouldFallbackToMock(): boolean {
+  return process.env.LLM_MOCK_FALLBACK !== 'false';
 }
 
 function assertSupportedSubject(subjectCode: string): void {
@@ -63,32 +68,16 @@ async function loadPrompt(relativePath: string): Promise<string> {
   }
 }
 
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => {
-    setTimeout(resolve, ms);
-  });
-}
 
-async function buildGenerationPrompt(
-  subjectCode: string,
-  exerciseCount: number,
-  orderOffset = 0,
-): Promise<string> {
+async function buildGenerationPrompt(subjectCode: string, exerciseCount: number): Promise<string> {
   assertSupportedSubject(subjectCode);
 
-  const lastIndex = orderOffset + exerciseCount - 1;
+  const lastIndex = exerciseCount - 1;
   let subjectPrompt = await loadPrompt(`versions/v1.0.0/${subjectCode}.md`);
 
   subjectPrompt = subjectPrompt
     .replaceAll('{{exerciseCount}}', String(exerciseCount))
     .replaceAll('{{lastIndex}}', String(lastIndex));
-
-  if (orderOffset > 0) {
-    subjectPrompt = subjectPrompt.replace(
-      'orderIndex debe ir de 0 a',
-      `orderIndex debe ir de ${orderOffset} a`,
-    );
-  }
 
   return `${subjectPrompt}
 
@@ -123,127 +112,46 @@ function deduplicateQuestions(exercises: GeneratedExercise[]): boolean {
   return true;
 }
 
-const GENERATION_BATCH_SIZE = 5;
-const GENERATION_BATCH_PAUSE_MS = 12_000;
-const MAX_GENERATION_ATTEMPTS = 4;
-
-function remapOrderIndex(
-  exercises: GeneratedExercise[],
-  orderOffset: number,
-): GeneratedExercise[] {
-  return exercises.map((exercise, index) => ({
-    ...exercise,
-    orderIndex: orderOffset + index,
-  }));
-}
-
-function getRateLimitDelayMs(error: unknown): number | null {
-  if (!(error instanceof ApiError) || error.code !== 'GENERATION_RATE_LIMIT') {
-    return null;
-  }
-
-  const details = error.details;
-
-  if (details && typeof details === 'object' && 'retryAfterMs' in details) {
-    const retryAfterMs = (details as { retryAfterMs?: unknown }).retryAfterMs;
-
-    if (typeof retryAfterMs === 'number' && Number.isFinite(retryAfterMs)) {
-      return retryAfterMs;
-    }
-  }
-
-  return 20_000;
-}
-
-async function generateBatchWithRetries(
-  subjectCode: string,
-  exerciseCount: number,
-  orderOffset: number,
-): Promise<GeneratedExercise[]> {
-  const systemPrompt = await loadPrompt('versions/v1.0.0/system.md');
-  const userPrompt = await buildGenerationPrompt(subjectCode, exerciseCount, orderOffset);
-  const maxTokens = exerciseCount <= 5 ? 2048 : exerciseCount <= 10 ? 4096 : 8192;
-
-  let lastError: unknown;
-
-  for (let attempt = 0; attempt < MAX_GENERATION_ATTEMPTS; attempt += 1) {
-    try {
-      const raw = await chatCompletionJson(
-        systemPrompt,
-        attempt > 0
-          ? `${userPrompt}\n\nIMPORTANTE: Responde únicamente con JSON válido. Genera exactamente ${exerciseCount} ejercicios con orderIndex de ${orderOffset} a ${orderOffset + exerciseCount - 1}.`
-          : userPrompt,
-        maxTokens,
-      );
-      const parsed = generateRoundResponseSchema.parse(parseLlmJson(raw));
-
-      if (parsed.exercises.length !== exerciseCount) {
-        throw new Error('Invalid exercise count');
-      }
-
-      const exercises = remapOrderIndex(parsed.exercises, orderOffset);
-
-      if (!deduplicateQuestions(exercises)) {
-        throw new Error('Duplicate questions');
-      }
-
-      return exercises;
-    } catch (error) {
-      lastError = error;
-
-      const retryDelayMs = getRateLimitDelayMs(error);
-
-      if (retryDelayMs !== null && attempt < MAX_GENERATION_ATTEMPTS - 1) {
-        await sleep(retryDelayMs);
-      }
-    }
-  }
-
-  console.error('Generation failed after retries:', lastError);
-
-  if (lastError instanceof ApiError) {
-    throw lastError;
-  }
-
-  throw new ApiError(
-    'GENERATION_FAILED',
-    503,
-    'No se pudieron generar los ejercicios. Inténtalo más tarde.',
-  );
-}
-
-async function generateWithRetries(
+async function generateWithLlm(
   subjectCode: string,
   exerciseCount: number,
 ): Promise<{ exercises: GeneratedExercise[]; promptVersion: string }> {
-  if (exerciseCount <= GENERATION_BATCH_SIZE) {
-    const exercises = await generateBatchWithRetries(subjectCode, exerciseCount, 0);
-    return { exercises, promptVersion: PROMPT_VERSION };
-  }
+  const systemPrompt = await loadPrompt('versions/v1.0.0/system.md');
+  const userPrompt = await buildGenerationPrompt(subjectCode, exerciseCount);
 
-  const exercises: GeneratedExercise[] = [];
-  let orderOffset = 0;
+  try {
+    const raw = await chatCompletionJson(systemPrompt, userPrompt);
+    const parsed = generateRoundResponseSchema.parse(parseLlmJson(raw));
 
-  while (orderOffset < exerciseCount) {
-    const batchSize = Math.min(GENERATION_BATCH_SIZE, exerciseCount - orderOffset);
-    const batch = await generateBatchWithRetries(subjectCode, batchSize, orderOffset);
-    exercises.push(...batch);
-    orderOffset += batchSize;
-
-    if (orderOffset < exerciseCount) {
-      await sleep(GENERATION_BATCH_PAUSE_MS);
+    if (parsed.exercises.length !== exerciseCount) {
+      throw new Error('Invalid exercise count');
     }
-  }
 
-  if (!deduplicateQuestions(exercises)) {
-    throw new ApiError(
-      'GENERATION_FAILED',
-      503,
-      'No se pudieron generar los ejercicios. Inténtalo más tarde.',
-    );
-  }
+    if (!deduplicateQuestions(parsed.exercises)) {
+      throw new Error('Duplicate questions');
+    }
 
-  return { exercises, promptVersion: PROMPT_VERSION };
+    return { exercises: parsed.exercises, promptVersion: PROMPT_VERSION };
+  } catch (error) {
+    console.error('LLM generation failed:', error);
+    throw error instanceof ApiError
+      ? error
+      : new ApiError(
+          'GENERATION_FAILED',
+          503,
+          'No se pudieron generar los ejercicios. Inténtalo más tarde.',
+        );
+  }
+}
+
+function generateMockFallback(
+  subjectCode: string,
+  exerciseCount: number,
+): { exercises: GeneratedExercise[]; promptVersion: string } {
+  return {
+    exercises: generateMockExercises(subjectCode as SubjectCode, exerciseCount),
+    promptVersion: MOCK_FALLBACK_PROMPT_VERSION,
+  };
 }
 
 export async function generateExercises(
@@ -261,11 +169,17 @@ export async function generateExercises(
       );
     }
 
-    return {
-      exercises: generateMockExercises(subjectCode as SubjectCode, exerciseCount),
-      promptVersion: PROMPT_VERSION,
-    };
+    return generateMockFallback(subjectCode, exerciseCount);
   }
 
-  return generateWithRetries(subjectCode, exerciseCount);
+  try {
+    return await generateWithLlm(subjectCode, exerciseCount);
+  } catch (error) {
+    if (!shouldFallbackToMock()) {
+      throw error;
+    }
+
+    console.warn('Using mock exercise fallback after LLM failure');
+    return generateMockFallback(subjectCode, exerciseCount);
+  }
 }
